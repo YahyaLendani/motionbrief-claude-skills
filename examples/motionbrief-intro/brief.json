@@ -76,7 +76,7 @@
       "duration": 4,
       "kind": "lockup",
       "motion": "settle-in",
-      "hold": 2.6,
+      "hold": 2.35,
       "copy": [
         "MotionBrief",
         "A brief your agent can't drift from.",
@@ -94,7 +94,7 @@
     "gain": 0.7
   },
   "assumptions": [
-    "Purpose: the intro video at the top of the repo README, so 1920x1080 landscape.",
+    "Purpose: the intro video at the top of the repo README, so 1920x1080 landscape. The README shows it as a 25 fps, 880 px GIF (docs/intro.gif) that links to the full 60 fps MP4 (docs/intro.mp4).",
     "60 fps as requested; 17 s so each idea gets one beat-length idea plus a 2.35 s closing hold.",
     "The logo is new: a rounded square holding three 'brief' text lines that morph into a play triangle cut into three bands — brief becomes motion.",
     "Brand name written 'MotionBrief' (as asked) with 'Brief' in the accent colour.",
