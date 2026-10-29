@@ -354,4 +354,5 @@ catch it.
 
 MIT — see [LICENSE](LICENSE). This covers the skill's own files. HyperFrames is
 Apache 2.0, Remotion has its own seat-limited licence, and GSAP has its own
-terms; using those engines means following theirs.
+terms; using those engines means following theirs. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
