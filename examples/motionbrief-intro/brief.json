@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "slug": "motionbrief-intro",
+  "lane": "hyperframes",
+  "composition": "MotionBriefIntro",
+  "format": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 60,
+    "duration": 17,
+    "container": "mp4"
+  },
+  "brand": {
+    "name": "MotionBrief",
+    "tagline": "A brief your agent can't drift from.",
+    "palette": {
+      "bg": "#08090c",
+      "fg": "#f4f5f7",
+      "dim": "#8b93a1",
+      "accent": "#7dd3fc"
+    },
+    "type": {
+      "family": "Inter",
+      "displayWeight": 800,
+      "bodyWeight": 500,
+      "mono": "JetBrains Mono"
+    }
+  },
+  "feel": {
+    "energy": "medium",
+    "ease": "snappy",
+    "overshoot": "objects-only",
+    "transition": "cinematic-zoom"
+  },
+  "beats": [
+    {
+      "id": "logo",
+      "start": 0,
+      "duration": 4,
+      "kind": "logo",
+      "motion": "assemble",
+      "visibleAtStart": true,
+      "copy": ["MotionBrief"],
+      "notes": "Three brief lines are on screen at frame 0. A rounded square draws around them, the lines morph into a play triangle cut into three bands, the square floods accent, the mark slides left as the wordmark rises letter by letter. Exit zooms through the triangle."
+    },
+    {
+      "id": "sentence",
+      "start": 4,
+      "duration": 3,
+      "kind": "kinetic",
+      "motion": "word-stagger",
+      "copy": ["Describe the video in one sentence."],
+      "notes": "Arrives out of the zoom. 'one sentence.' gets an accent sweep. Exit: the words collapse into a centred { } glyph that the next beat opens from."
+    },
+    {
+      "id": "grid",
+      "start": 7,
+      "duration": 3.5,
+      "kind": "chart",
+      "motion": "grow",
+      "copy": ["brief.json", "Every cut, every hold, every word."],
+      "notes": "The { } opens into a brief.json panel: a 120 BPM beat ruler, five beat blocks snap onto the grid, a playhead sweeps and lights each tick it passes. Exit: whip-pan left."
+    },
+    {
+      "id": "same",
+      "start": 10.5,
+      "duration": 2.5,
+      "kind": "kinetic",
+      "motion": "scale-in",
+      "copy": ["Same brief,", "same cuts,", "same words,", "byte-identical music."],
+      "notes": "Four phrases stamp in on eighth notes, last one in accent. Exit pushes up, finishing on the cut."
+    },
+    {
+      "id": "lockup",
+      "start": 13,
+      "duration": 4,
+      "kind": "lockup",
+      "motion": "settle-in",
+      "hold": 2.6,
+      "copy": [
+        "MotionBrief",
+        "A brief your agent can't drift from.",
+        "npx skills add YahyaLendani/motionbrief"
+      ]
+    }
+  ],
+  "assets": { "policy": "none", "files": [] },
+  "audio": {
+    "policy": "generated",
+    "bpm": 120,
+    "preset": "medium",
+    "key": "A",
+    "mode": "minor",
+    "gain": 0.7
+  },
+  "assumptions": [
+    "Purpose: the intro video at the top of the repo README, so 1920x1080 landscape.",
+    "60 fps as requested; 17 s so each idea gets one beat-length idea plus a 2.6 s closing hold.",
+    "The logo is new: a rounded square holding three 'brief' text lines that morph into a play triangle cut into three bands — brief becomes motion.",
+    "Brand name written 'MotionBrief' (as asked) with 'Brief' in the accent colour.",
+    "Copy is lifted verbatim from the README: the tagline, 'Describe the video in one sentence.', 'every cut, every hold, every word', 'Same brief, same cuts, same words, byte-identical music.' and the install command.",
+    "Palette kept from the existing template (near-black, near-white, ice-blue #7dd3fc) so it matches the README badges.",
+    "Inter and JetBrains Mono loaded from Google Fonts.",
+    "Music generated at 120 BPM in A minor; every cut lands on the 0.5 s grid."
+  ]
+}

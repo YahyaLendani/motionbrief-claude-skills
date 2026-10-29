@@ -1,0 +1,142 @@
+<template>
+  <style>
+    #lk-root {
+      position: absolute;
+      inset: 0;
+      background: var(--bg, #08090c);
+      display: grid;
+      place-items: center;
+      font-family: Inter, system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #lk-glow {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1200px;
+      height: 1200px;
+      margin: -700px 0 0 -600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(125, 211, 252, 0.14) 0%, rgba(125, 211, 252, 0) 60%);
+    }
+
+    #lk-inner {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #lk-row {
+      display: flex;
+      align-items: center;
+      gap: 44px;
+    }
+
+    #lk-mark {
+      width: 200px;
+      height: 200px;
+      flex: none;
+    }
+
+    #lk-word {
+      display: flex;
+      overflow: hidden;
+      padding: 0.06em 0.04em 0.14em;
+      font-size: 148px;
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: var(--fg, #f4f5f7);
+    }
+
+    #lk-word .ch { display: inline-block; }
+    #lk-word .acc { color: var(--accent, #7dd3fc); }
+
+    #lk-tag {
+      margin-top: 30px;
+      font-size: 58px;
+      font-weight: 500;
+      letter-spacing: -0.015em;
+      color: var(--dim, #8b93a1);
+      opacity: 0;
+    }
+
+    #lk-cmd {
+      margin-top: 64px;
+      padding: 22px 36px;
+      border-radius: 18px;
+      border: 2px solid var(--line, rgba(244, 245, 247, 0.12));
+      background: var(--panel, #0d0f14);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 42px;
+      font-weight: 500;
+      color: var(--fg, #f4f5f7);
+      opacity: 0;
+    }
+
+    #lk-cmd .p { color: var(--accent, #7dd3fc); margin-right: 0.6em; }
+  </style>
+
+  <div id="lk-root" data-composition-id="lockup" data-width="1920" data-height="1080">
+    <div id="lk-glow"></div>
+    <div id="lk-inner">
+      <div id="lk-row">
+        <svg id="lk-mark" viewBox="0 0 200 200" aria-hidden="true">
+          <rect x="8" y="8" width="184" height="184" rx="50" fill="#7dd3fc" />
+          <g fill="#08090c" stroke="#08090c" stroke-width="5" stroke-linejoin="round">
+            <polygon points="68,58 68,58 87.1,69 106.2,80 68,80" />
+            <polygon points="68,89 121.9,89 141,100 121.9,111 68,111" />
+            <polygon points="68,120 106.2,120 87.1,131 68,142 68,142" />
+          </g>
+        </svg>
+        <div id="lk-word" aria-label="MotionBrief">MotionBrief</div>
+      </div>
+      <div id="lk-tag">A brief your agent can't drift from.</div>
+      <div id="lk-cmd"><span class="p">$</span><span id="lk-cmd-text">npx skills add YahyaLendani/motionbrief</span></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      function split(el, cls) {
+        var text = el.textContent;
+        el.textContent = "";
+        for (var i = 0; i < text.length; i++) {
+          var s = document.createElement("span");
+          s.className = cls(i);
+          s.textContent = text[i];
+          el.appendChild(s);
+        }
+      }
+      split(document.getElementById("lk-word"), function (i) { return i >= 6 ? "ch acc" : "ch"; });
+      split(document.getElementById("lk-cmd-text"), function () { return "k"; });
+
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // arrive from just behind the previous beat's push
+      tl.fromTo("#lk-inner", { scale: 0.9, filter: "blur(8px)" },
+        { scale: 1, filter: "blur(0px)", duration: 0.6, ease: "expo.out" }, 0);
+
+      // the mark is an object: it may overshoot; the type never does
+      tl.fromTo("#lk-mark", { scale: 0.55, opacity: 0.45 },
+        { scale: 1, opacity: 1, duration: 0.65, ease: "back.out(1.7)" }, 0);
+      tl.fromTo("#lk-word .ch", { yPercent: 115 },
+        { yPercent: 0, duration: 0.6, ease: "power4.out", stagger: 0.025 }, 0.12);
+
+      tl.fromTo("#lk-tag", { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.4);
+
+      // install command types on, then holds to the last frame
+      tl.fromTo("#lk-cmd", { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.6);
+      tl.fromTo("#lk-cmd .k", { opacity: 0 },
+        { opacity: 1, duration: 0.01, ease: "none", stagger: 0.016 }, 0.8);
+
+      // settled by ~1.45 s; holds 2.6 s to the end — no exit, last frame is the card
+      window.__timelines["lockup"] = tl;
+    })();
+  </script>
+</template>

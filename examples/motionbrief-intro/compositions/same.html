@@ -1,0 +1,68 @@
+<template>
+  <style>
+    #sm-root {
+      position: absolute;
+      inset: 0;
+      background: var(--bg, #08090c);
+      display: grid;
+      place-items: center;
+      font-family: Inter, system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #sm-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 1360px;
+    }
+
+    .sm-line {
+      font-size: 132px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 1.04;
+      color: var(--fg, #f4f5f7);
+      opacity: 0;
+    }
+
+    .sm-line.acc { color: var(--accent, #7dd3fc); }
+  </style>
+
+  <div id="sm-root" data-composition-id="same" data-width="1920" data-height="1080">
+    <div id="sm-stack">
+      <div class="sm-line">Same brief,</div>
+      <div class="sm-line">same cuts,</div>
+      <div class="sm-line">same words,</div>
+      <div class="sm-line acc">byte-identical music.</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // arrive out of the whip-pan
+      tl.fromTo("#sm-stack", { x: 420, filter: "blur(14px)" },
+        { x: 0, filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 0);
+
+      // one phrase per eighth note (0.25 s at 120 BPM), stamped, no overshoot
+      var lines = document.querySelectorAll(".sm-line");
+      tl.fromTo(lines[0],
+        { scale: 1.3, opacity: 0.4, filter: "blur(10px)", transformOrigin: "0% 50%" },
+        { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.32, ease: "power4.out" },
+        0);
+      tl.fromTo(Array.prototype.slice.call(lines, 1),
+        { scale: 1.3, opacity: 0, filter: "blur(10px)", transformOrigin: "0% 50%" },
+        { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.32, ease: "power4.out", stagger: 0.25 },
+        0.25);
+
+      // last phrase lands ~1.07 s and holds a full second before the exit,
+      // which pushes up and ends on the cut (2.5 s)
+      tl.to(".sm-line", { y: -90, opacity: 0, filter: "blur(8px)", duration: 0.28, ease: "power2.in", stagger: 0.04 }, 2.1);
+
+      window.__timelines["same"] = tl;
+    })();
+  </script>
+</template>

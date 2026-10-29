@@ -10,6 +10,9 @@ out/
 !docs/preview.gif
 !docs/preview.mp4
 !docs/poster.jpg
+!docs/intro.gif
+!docs/intro.mp4
+!docs/intro.jpg
 
 # generated music beds — regenerate with `npm run music`
 audio/

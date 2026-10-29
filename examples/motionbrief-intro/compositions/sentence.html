@@ -1,0 +1,133 @@
+<template>
+  <style>
+    #sn-root {
+      position: absolute;
+      inset: 0;
+      background: var(--bg, #08090c);
+      display: grid;
+      place-items: center;
+      font-family: Inter, system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #sn-text {
+      max-width: 1300px;
+      text-align: center;
+      font-size: 124px;
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 1.1;
+      color: var(--fg, #f4f5f7);
+    }
+
+    #sn-text .w {
+      position: relative;
+      display: inline-block;
+      margin: 0 0.13em;
+    }
+
+    #sn-text .bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0.02em;
+      height: 0.1em;
+      border-radius: 0.05em;
+      background: var(--accent, #7dd3fc);
+      transform-origin: 0% 50%;
+    }
+
+    .mb-brace {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5em;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 160px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--accent, #7dd3fc);
+    }
+
+    #sn-brace { opacity: 0; }
+
+    #sn-flash {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(60% 70% at 50% 50%, rgba(125, 211, 252, 0.55) 0%, rgba(125, 211, 252, 0.12) 55%, rgba(125, 211, 252, 0) 100%);
+    }
+  </style>
+
+  <div id="sn-root" data-composition-id="sentence" data-width="1920" data-height="1080">
+    <div id="sn-text">Describe the video in one sentence.</div>
+    <div id="sn-flash"></div>
+    <div id="sn-brace" class="mb-brace"><span>{</span><span>}</span></div>
+  </div>
+
+  <script>
+    (function () {
+      // Split into words; the last two ("one sentence.") get the accent bar.
+      var el = document.getElementById("sn-text");
+      var words = el.textContent.split(" ");
+      el.textContent = "";
+      words.forEach(function (w, i) {
+        var s = document.createElement("span");
+        s.className = i >= words.length - 2 ? "w hl" : "w";
+        s.textContent = w;
+        if (i >= words.length - 2) {
+          var b = document.createElement("i");
+          b.className = "bar";
+          s.appendChild(b);
+        }
+        el.appendChild(s);
+      });
+
+      function build() {
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+        var ws = el.querySelectorAll(".w");
+
+        // Each word's offset to the centre, measured at rest, for the exit.
+        var toCentre = Array.prototype.map.call(ws, function (w) {
+          var r = w.getBoundingClientRect();
+          var host = document.getElementById("sn-root").getBoundingClientRect();
+          return {
+            x: host.left + 960 - (r.left + r.width / 2),
+            y: host.top + 540 - (r.top + r.height / 2),
+          };
+        });
+
+        // arrive out of the logo's zoom
+        tl.fromTo("#sn-text", { scale: 0.9, filter: "blur(8px)" },
+          { scale: 1, filter: "blur(0px)", duration: 0.6, ease: "expo.out" }, 0);
+        tl.fromTo("#sn-flash", { opacity: 1 }, { opacity: 0, duration: 0.45, ease: "power2.out" }, 0);
+        tl.fromTo(ws[0], { y: 40, opacity: 0.35 },
+          { y: 0, opacity: 1, duration: 0.5, ease: "power4.out" }, 0);
+        tl.fromTo(Array.prototype.slice.call(ws, 1), { y: 70, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.55, ease: "power4.out", stagger: 0.07 }, 0.07);
+
+        // 0.85 — "one sentence." lights up
+        tl.fromTo("#sn-text .bar", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power4.out", stagger: 0.12 }, 0.85);
+        tl.to("#sn-text .hl", { color: "#7dd3fc", duration: 0.3, ease: "power2.out", stagger: 0.12 }, 0.85);
+
+        // 2.35 — exit: the sentence is compiled — every word collapses into
+        // the centre and becomes { }, which the next beat opens.
+        Array.prototype.forEach.call(ws, function (w, i) {
+          var d = Math.abs(i - (ws.length - 1) / 2);
+          tl.to(w, {
+            x: toCentre[i].x, y: toCentre[i].y, scale: 0.12, opacity: 0,
+            filter: "blur(6px)", duration: 0.5, ease: "power3.in",
+          }, 2.5 - d * 0.05);
+        });
+        tl.fromTo("#sn-brace", { scale: 0.3, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.4, ease: "power4.out" }, 2.6);
+
+        window.__timelines["sentence"] = tl;
+      }
+
+      document.fonts.ready.then(build);
+    })();
+  </script>
+</template>

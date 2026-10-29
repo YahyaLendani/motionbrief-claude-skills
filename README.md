@@ -15,9 +15,9 @@ renders an MP4 with music synthesized from the same beat grid.
 Same brief, same cuts, same words, byte-identical music. And if the build drifts
 from the brief, it fails before it renders.
 
-![The Motions launch card — wordmark, kinetic type, count-up, lockup](docs/preview.gif)
+[![The MotionBrief intro — logo morph, one sentence, the beat grid, same brief same cuts, install lockup](docs/intro.gif)](docs/intro.mp4)
 
-<sub>12 s · 1920×1080 · 30 fps · built from [`assets/hyperframes/brief.json`](skills/motionbrief/assets/hyperframes/brief.json) — every cut on a 120 BPM grid, score synthesized from the same beat</sub>
+<sub>17 s · 1920×1080 · 60 fps · built from [`examples/motionbrief-intro/brief.json`](examples/motionbrief-intro/brief.json) — every cut on a 120 BPM grid, score synthesized from the same beat</sub>
 
 ```bash
 npx skills add YahyaLendani/motionbrief

@@ -1,0 +1,199 @@
+<template>
+  <style>
+    #lg-root {
+      position: absolute;
+      inset: 0;
+      background: var(--bg, #08090c);
+      font-family: Inter, system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #lg-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(32, 1fr);
+      grid-template-rows: repeat(18, 1fr);
+      opacity: 0.22;
+    }
+
+    #lg-grid i {
+      width: 3px;
+      height: 3px;
+      border-radius: 1px;
+      background: var(--fg, #f4f5f7);
+      place-self: center;
+      opacity: 0;
+    }
+
+    #lg-glow {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1000px;
+      height: 1000px;
+      margin: -500px 0 0 -500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(125, 211, 252, 0.2) 0%, rgba(125, 211, 252, 0) 62%);
+      opacity: 0;
+    }
+
+    #lg-row {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 56px;
+    }
+
+    #lg-mark {
+      width: 300px;
+      height: 300px;
+      flex: none;
+      overflow: visible;
+    }
+
+    .lg-band {
+      fill: var(--fg, #f4f5f7);
+      stroke: var(--fg, #f4f5f7);
+      stroke-width: 5;
+      stroke-linejoin: round;
+    }
+
+    #lg-word {
+      display: flex;
+      overflow: hidden;
+      padding: 0.06em 0.04em 0.14em;
+      font-size: 176px;
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: var(--fg, #f4f5f7);
+    }
+
+    #lg-word .ch { display: inline-block; }
+    #lg-word .acc { color: var(--accent, #7dd3fc); }
+  </style>
+
+  <div id="lg-root" data-composition-id="logo" data-width="1920" data-height="1080">
+    <div id="lg-grid"></div>
+    <div id="lg-glow"></div>
+    <div id="lg-row">
+      <svg id="lg-mark" viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <clipPath id="lg-clip">
+            <rect x="8" y="8" width="184" height="184" rx="50" />
+          </clipPath>
+        </defs>
+        <g clip-path="url(#lg-clip)">
+          <circle id="lg-flood" cx="100" cy="100" r="0" fill="#7dd3fc" />
+        </g>
+        <rect id="lg-frame" x="8" y="8" width="184" height="184" rx="50"
+          fill="none" stroke="#7dd3fc" stroke-width="6" />
+        <!-- three lines of a brief; each polygon has five points so it can
+             morph into one band of the play triangle -->
+        <polygon class="lg-band" id="lg-b1" points="52,63 148,63 148,70 148,77 52,77" />
+        <polygon class="lg-band" id="lg-b2" points="52,93 128,93 128,100 128,107 52,107" />
+        <polygon class="lg-band" id="lg-b3" points="52,123 108,123 108,130 108,137 52,137" />
+      </svg>
+      <div id="lg-word" aria-label="MotionBrief">MotionBrief</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Deterministic dot field: seeded LCG, identical every render.
+      var grid = document.getElementById("lg-grid");
+      var frag = document.createDocumentFragment();
+      var seed = 20261029;
+      var rnd = function () {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+      };
+      for (var i = 0; i < 32 * 18; i++) {
+        var dot = document.createElement("i");
+        var r = rnd();
+        dot.dataset.o = r <= 0.5 ? String(0.25 + r * 1.2) : "0";
+        frag.appendChild(dot);
+      }
+      grid.appendChild(frag);
+
+      // Split the wordmark into letters; "Brief" takes the accent.
+      var word = document.getElementById("lg-word");
+      var text = word.textContent;
+      word.textContent = "";
+      for (var c = 0; c < text.length; c++) {
+        var s = document.createElement("span");
+        s.className = c >= 6 ? "ch acc" : "ch";
+        s.textContent = text[c];
+        word.appendChild(s);
+      }
+
+      // Play triangle (68,58)-(68,142)-(141,100), cut into three bands.
+      var TRI = [
+        "68,58 68,58 87.1,69 106.2,80 68,80",
+        "68,89 121.9,89 141,100 121.9,111 68,111",
+        "68,120 106.2,120 87.1,131 68,142 68,142",
+      ];
+
+      function build() {
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+
+        var mark = document.getElementById("lg-mark");
+        var frame = document.getElementById("lg-frame");
+        var len = frame.getTotalLength();
+        var gap = 56;
+        // Half the row's extra width: how far the mark sits right of its
+        // final slot while it is alone in the centre.
+        var offset = (word.offsetWidth + gap) / 2;
+        var markLeft = (1920 - (300 + gap + word.offsetWidth)) / 2;
+        var zoomX = markLeft + 300 * 0.52;
+
+        gsap.set(frame, { strokeDasharray: len, strokeDashoffset: len });
+
+        // 0.00 — the brief lines are on screen at frame 0 and settle.
+        tl.fromTo(mark, { x: offset, y: 26, filter: "blur(6px)" },
+          { x: offset, y: 0, filter: "blur(0px)", duration: 0.8, ease: "expo.out" }, 0);
+        tl.fromTo(".lg-band", { scaleX: 0.82, transformOrigin: "0% 50%" },
+          { scaleX: 1, duration: 0.6, ease: "power4.out", stagger: 0.06 }, 0);
+
+        tl.fromTo("#lg-grid i", { opacity: 0, scale: 0 }, {
+          opacity: function (i, el) { return Number(el.dataset.o) || 0; },
+          scale: 1, duration: 0.5, ease: "power2.out",
+          stagger: { each: 0.004, from: "center", grid: [18, 32] },
+        }, 0.1);
+
+        // 0.30 — the frame draws around them.
+        tl.to(frame, { strokeDashoffset: 0, duration: 0.8, ease: "power2.inOut" }, 0.3);
+
+        // 0.95 — lines morph into the play triangle.
+        ["#lg-b1", "#lg-b2", "#lg-b3"].forEach(function (id, i) {
+          tl.to(id, { attr: { points: TRI[i] }, duration: 0.6, ease: "expo.inOut" }, 0.95 + i * 0.07);
+        });
+
+        // 1.45 — accent floods the square; the triangle cuts out of it.
+        tl.to(mark, { scale: 0.94, duration: 0.12, ease: "power2.in" }, 1.38);
+        tl.to("#lg-flood", { attr: { r: 142 }, duration: 0.55, ease: "power3.out" }, 1.45);
+        tl.to(".lg-band", { fill: "#08090c", stroke: "#08090c", duration: 0.25, ease: "power1.out" }, 1.5);
+        tl.to(mark, { scale: 1, duration: 0.6, ease: "back.out(2.4)" }, 1.5);
+        tl.fromTo("#lg-glow", { opacity: 0, x: 0 }, { opacity: 1, duration: 0.8, ease: "power2.out" }, 1.5);
+
+        // 1.85 — mark slides into its slot, wordmark rises behind it.
+        tl.to(mark, { x: 0, duration: 0.8, ease: "expo.inOut" }, 1.85);
+        tl.to("#lg-glow", { x: -offset, duration: 0.8, ease: "expo.inOut" }, 1.85);
+        tl.fromTo("#lg-word .ch", { yPercent: 115 },
+          { yPercent: 0, duration: 0.65, ease: "power4.out", stagger: 0.025 }, 2.0);
+
+        // 3.50 — exit: the camera flies into the play triangle, ending on the cut.
+        tl.set("#lg-root", { transformOrigin: zoomX + "px 540px" }, 3.5);
+        tl.to("#lg-root", { scale: 14, filter: "blur(14px)", duration: 0.5, ease: "power3.in" }, 3.5);
+
+        window.__timelines["logo"] = tl;
+      }
+
+      document.fonts.ready.then(build);
+    })();
+  </script>
+</template>
