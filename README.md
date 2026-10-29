@@ -12,7 +12,8 @@ Describe the video in one sentence. Claude compiles it into a `brief.json` — e
 cut, every hold, every word — validates it in ten milliseconds, builds it, and
 renders an MP4 with music synthesized from the same beat grid.
 
-Two runs produce the same video. Not similar. The same.
+Same brief, same cuts, same words, byte-identical music. And if the build drifts
+from the brief, it fails before it renders.
 
 ![The Motions launch card — wordmark, kinetic type, count-up, lockup](docs/preview.gif)
 
@@ -49,7 +50,8 @@ your sentence
  composition         ← built from a template that already renders
       │
       ▼
- validation          ← offline contract check + the engine's own linter
+ validation          ← build compared with the brief, offline contract
+      │               check, then the engine's own linter
       │
       ▼
  picture.mp4  +  music.wav  →  renders/*.mp4
@@ -59,14 +61,33 @@ The brief takes about ten seconds to compile and it buys back the entire rebuild
 
 ---
 
-## What it does that the other video skills don't
+## What sets it apart
 
-There are [373 video skills indexed](https://github.com/zhuyansen/awesome-claude-video-skills).
-These five things are the ones we could not find anywhere else.
+There are [hundreds of video skills](https://github.com/zhuyansen/awesome-claude-video-skills),
+and most do more than this one: the official HyperFrames and Remotion skills,
+toolkits with voiceover and AI footage, kits whose critics review the finished
+render. motionbrief does something narrower that we could not find elsewhere:
+it holds the build to a brief that a script has already checked.
 
-### 1. A validator, not a vibe check
+### 1. The build is held to the brief
 
-`brief.mjs` rejects the mistakes that otherwise only show up at render time:
+`check-contract.mjs` compares the project with `brief.json`. Move a scene,
+change the size, or paraphrase a line, and it fails:
+
+```
+ERROR [brief_timing_mismatch] beat "lockup" is 9s–12s in the brief but scene #scene-lockup is 8s–12s
+ERROR [brief_copy_missing]    beat "lines" copy "Cut on beat." does not appear in the composition
+```
+
+It checks size, fps and length, every scene's start and duration (within a
+frame), and every line of copy, verbatim, in both engines. `motion-render.mjs`
+runs it before it renders, so a drifted build fails in milliseconds instead of
+after a render. No install, no browser, no network.
+
+### 2. A brief a script can reject
+
+Other skills write briefs too, as prose. This one is JSON with a fixed schema,
+and `brief.mjs` rejects the mistakes that otherwise only show up at render time:
 
 ```
 ERROR [timing_gap]         beats[1] "b" starts 0.50s after "a" ends — blank frame
@@ -80,58 +101,64 @@ warn  [closing_hold_short] "d" holds 1.2s — under the 2s a closing line needs
 The last three are the exact failures the real renderer caught the first time
 this project was built. Now they cost ten milliseconds and never come back.
 
-### 2. An offline contract checker
+Errors exit 1, and the render wrapper stops on them.
 
-`check-contract.mjs` parses the project and fails on the things that render
-*wrong but silently*: an unregistered timeline, a `window.__timelines` key that
-doesn't match `data-composition-id`, an unpaused GSAP timeline, `Math.random()`
-in a composition, an unclamped `interpolate`, a raw `<video>` where
-`<OffthreadVideo>` belongs.
+### 3. A pre-flight for silent failures
 
-It also holds the build to the brief. Move a scene, change the size, or
-paraphrase a line, and it fails:
+The same script also fails on the things that render *wrong but silently*: an
+unregistered timeline, a `window.__timelines` key that doesn't match
+`data-composition-id`, an unpaused GSAP timeline, `Math.random()` in a
+composition, an unclamped `interpolate`, a raw `<video>` where
+`<OffthreadVideo>` belongs. It runs in milliseconds before the engines' own
+linters, which still run after it.
 
-```
-ERROR [brief_timing_mismatch] beat "lockup" is 9s–12s in the brief but scene #scene-lockup is 8s–12s
-ERROR [brief_copy_missing]    beat "lines" copy "Cut on beat." does not appear in the composition
-```
-
-`motion-render.mjs` runs both checks before it renders, so a drifted build
-never costs a render.
-
-No install, no browser, no network. Most skills in this space discover those by
-rendering and failing.
-
-### 3. One brief, two engines
+### 4. One brief, two engines
 
 | | [HyperFrames](https://hyperframes.heygen.com) | [Remotion](https://remotion.dev) |
 |---|---|---|
 | You write | HTML + a paused GSAP timeline | React components |
-| Install | none — `npx hyperframes` | `npm install` (~950 MB) |
+| Install | none — `npx hyperframes` (Node 22+) | `npm install` (~950 MB) |
 | Licence | Apache 2.0 | free to 3 people, paid above |
 | Best when | reusing HTML/CSS, or no build step | your team already writes React |
 
 Both templates in this repo are the same 12 seconds, so you can read them side by
-side. The brief routes between them; the same brief is valid for either.
+side. CI checks both against the same brief, so they cannot drift apart.
 
-### 4. Music from the same grid
+### 5. Music that is the same every time
 
 `music.mjs` synthesizes a bed from the brief's own `bpm` and beat positions —
 additive synthesis, seeded noise, written as 16-bit PCM WAV. No samples, no API
-keys, no downloads.
+keys, no downloads. The same brief gives a byte-identical WAV; CI checks it.
 
 A 120 BPM brief puts a downbeat every 0.5 s, so every cut lands on one. Change
 the tempo and the validator tells you which cuts no longer line up.
 
-### 5. Batch without ceremony
+It is a simple bed, not a produced track. If you want real music with cuts on
+its beat, other skills do that well (see below).
 
-```bash
-node skills/motionbrief/scripts/motion-render.mjs \
-  --brief brief.json --batch rows.json
-```
+Batch rendering is a pass-through: `--batch rows.json` uses HyperFrames' own
+batch mode, and gives Remotion one props file per row.
 
-One template, twenty stat cards, one command. HyperFrames renders rows natively;
-Remotion gets one props file per row.
+### When to use something else
+
+motionbrief makes short, repeatable pieces from one template. It does not:
+
+- **look at the finished render.** It checks the code, not the pixels, so text
+  overflow, overlaps and contrast are left to `npx hyperframes check` and to you.
+  [motion-video-kit](https://github.com/echris6/motion-video-kit) has fresh
+  critics review the actual render.
+- **do voiceover, captions, footage or AI media.** See the official
+  [HyperFrames](https://github.com/heygen-com/hyperframes) and
+  [Remotion](https://github.com/remotion-dev/skills) skills, or
+  [claude-code-video-toolkit](https://github.com/digitalsamba/claude-code-video-toolkit).
+- **ship a large library.** One template today, and most of the animation names
+  in the brief's vocabulary have no worked example yet. HyperFrames' registry
+  has hundreds of blocks.
+- **produce real music.** [claude-motion-design](https://github.com/howseen-ai/claude-motion-design)
+  aligns cuts to a real track's drop.
+
+They combine well: motionbrief's checks are plain Node scripts, so they can run
+in front of any HyperFrames or Remotion project.
 
 ---
 
