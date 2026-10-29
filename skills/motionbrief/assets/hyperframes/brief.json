@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "slug": "motions-launch",
+  "lane": "hyperframes",
+  "composition": "LaunchCard",
+  "format": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "duration": 12,
+    "container": "mp4"
+  },
+  "brand": {
+    "name": "Motions",
+    "tagline": "Every cut, on the beat.",
+    "palette": {
+      "bg": "#08090c",
+      "fg": "#f4f5f7",
+      "dim": "#6b7280",
+      "accent": "#7dd3fc"
+    },
+    "type": {
+      "family": "Inter",
+      "displayWeight": 800,
+      "bodyWeight": 500
+    }
+  },
+  "feel": {
+    "energy": "medium",
+    "ease": "snappy",
+    "overshoot": "objects-only",
+    "transition": "cinematic-zoom"
+  },
+  "beats": [
+    {
+      "id": "wordmark",
+      "start": 0,
+      "duration": 2.5,
+      "kind": "logo",
+      "motion": "settle-in",
+      "visibleAtStart": true,
+      "copy": ["MOTIONS"]
+    },
+    {
+      "id": "lines",
+      "start": 2.5,
+      "duration": 4.5,
+      "kind": "kinetic",
+      "motion": "word-stagger",
+      "copy": ["Brief in.", "Cut on beat.", "Same every time."]
+    },
+    {
+      "id": "stat",
+      "start": 7.0,
+      "duration": 2.0,
+      "kind": "stat",
+      "motion": "count",
+      "copy": ["renders", "12,480"],
+      "data": { "value": 12480 }
+    },
+    {
+      "id": "lockup",
+      "start": 9.0,
+      "duration": 3.0,
+      "kind": "lockup",
+      "motion": "settle-in",
+      "hold": 2.1,
+      "copy": ["Motions", "Every cut, on the beat."]
+    }
+  ],
+  "assets": { "policy": "none", "files": [] },
+  "audio": {
+    "policy": "generated",
+    "bpm": 120,
+    "preset": "medium",
+    "key": "A",
+    "mode": "minor",
+    "gain": 0.7
+  },
+  "assumptions": [
+    "Self-promo for the skill: the copy is the product's own claim, not a third-party brief.",
+    "Near-black background with a single ice-blue accent, since no brand colours were supplied.",
+    "The count-up is decorative product framing, not a measured statistic."
+  ]
+}

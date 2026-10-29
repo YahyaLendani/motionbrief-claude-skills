@@ -1,0 +1,23 @@
+{
+  "name": "motionbrief",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Motion graphics from a brief your agent can't drift from",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "brief": "node skills/motionbrief/scripts/brief.mjs skills/motionbrief/assets/hyperframes/brief.json",
+    "music": "node skills/motionbrief/scripts/music.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --out skills/motionbrief/assets/hyperframes/audio/music.wav",
+    "contract:hf": "node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/hyperframes",
+    "contract:remotion": "node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/remotion --brief skills/motionbrief/assets/hyperframes/brief.json",
+    "lint:hf": "npx --yes hyperframes@latest lint skills/motionbrief/assets/hyperframes",
+    "test": "node --test tests/brief.test.mjs tests/check-contract.test.mjs tests/motion-render.test.mjs",
+    "verify": "npm run brief && npm run contract:hf && npm run contract:remotion && npm test",
+    "render": "node skills/motionbrief/scripts/motion-render.mjs --brief skills/motionbrief/assets/hyperframes/brief.json",
+    "render:batch": "node skills/motionbrief/scripts/motion-render.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --batch skills/motionbrief/assets/hyperframes/rows.example.json",
+    "render:dry": "node skills/motionbrief/scripts/motion-render.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --dry-run",
+    "gif": "ffmpeg -y -i skills/motionbrief/assets/hyperframes/renders/motions-launch.mp4 -vf \"fps=10,scale=880:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=144[p];[s1][p]paletteuse=dither=bayer:bayer_scale=4\" -loop 0 docs/preview.gif"
+  }
+}

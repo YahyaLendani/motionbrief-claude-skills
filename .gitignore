@@ -1,0 +1,34 @@
+# renders and build output
+renders/
+out/
+*.mp4
+*.webm
+*.mov
+*.gif
+
+# the README's own media is the exception — it is committed on purpose
+!docs/preview.gif
+!docs/preview.mp4
+!docs/poster.jpg
+
+# generated music beds — regenerate with `npm run music`
+audio/
+
+# engine caches and artefacts
+.hyperframes/
+node_modules/
+.npm-cache*/
+.verify*/
+.tools/
+.build/
+.build3/
+
+# prop files generated for batch renders
+.props/
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

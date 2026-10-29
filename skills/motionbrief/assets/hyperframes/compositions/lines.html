@@ -1,0 +1,66 @@
+<template>
+  <style>
+    #ln-root {
+      position: absolute;
+      inset: 0;
+      background: var(--bg, #08090c);
+      display: grid;
+      place-items: center;
+      font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+
+    #ln-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      align-items: center;
+    }
+
+    #ln-lines span {
+      font-size: 118px;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: var(--fg, #f4f5f7);
+      line-height: 1;
+      opacity: 0;
+    }
+
+    #ln-lines span:last-child { color: var(--accent, #7dd3fc); }
+  </style>
+
+  <div id="ln-root" data-composition-id="lines" data-width="1920" data-height="1080">
+    <div id="ln-lines">
+      <span>Brief in.</span>
+      <span>Cut on beat.</span>
+      <span>Same every time.</span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // 1.05 s between starts, 0.7 s entries: each line is still settling when
+      // the next one begins.
+      [0, 1.05, 2.1].forEach(function (start, i) {
+        tl.fromTo(
+          "#ln-lines span:nth-child(" + (i + 1) + ")",
+          { y: 90, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" },
+          start,
+        );
+      });
+
+      // hold to 3.6, then all three lift out together
+      tl.to(
+        "#ln-lines span",
+        { y: -60, opacity: 0, duration: 0.45, ease: "power3.in", stagger: 0.06 },
+        3.6,
+      );
+
+      window.__timelines["lines"] = tl;
+    })();
+  </script>
+</template>

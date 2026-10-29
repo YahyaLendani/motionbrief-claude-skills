@@ -1,0 +1,69 @@
+<template>
+  <style>
+    #lk-root {
+      position: absolute;
+      inset: 0;
+      background: var(--bg, #08090c);
+      display: grid;
+      place-items: center;
+      font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+
+    #lk-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    #lk-title {
+      font-size: 96px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--fg, #f4f5f7);
+      line-height: 1;
+      opacity: 0;
+    }
+
+    #lk-tag {
+      font-size: 40px;
+      font-weight: 500;
+      color: var(--dim, #6b7280);
+      letter-spacing: -0.01em;
+      opacity: 0;
+    }
+  </style>
+
+  <div id="lk-root" data-composition-id="lockup" data-width="1920" data-height="1080">
+    <div id="lk-inner">
+      <div id="lk-title">Motions</div>
+      <div id="lk-tag">Every cut, on the beat.</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      tl.fromTo(
+        "#lk-title",
+        { y: 46, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.65, ease: "expo.out" },
+        0,
+      );
+
+      // Settles by 0.9 s and holds to the end: a closing line needs ~2 s on
+      // screen to read at play speed.
+      tl.fromTo(
+        "#lk-tag",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" },
+        0.3,
+      );
+
+      window.__timelines["lockup"] = tl;
+    })();
+  </script>
+</template>

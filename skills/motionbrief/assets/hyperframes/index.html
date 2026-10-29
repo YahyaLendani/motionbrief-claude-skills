@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Launch card — HyperFrames template</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #08090c;
+        --fg: #f4f5f7;
+        --dim: #6b7280;
+        --accent: #7dd3fc;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+      }
+
+      body {
+        font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+      }
+
+      #vignette {
+        position: absolute;
+        inset: 0;
+        z-index: 9;
+        pointer-events: none;
+        background: radial-gradient(
+          120% 90% at 50% 45%,
+          transparent 40%,
+          rgba(0, 0, 0, 0.55) 100%
+        );
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      The root is a container: each beat is a nested composition, mounted with
+      data-composition-src. This is the structure the linter recommends, and it
+      gives the browser editor one timeline row per beat plus scene-aware review
+      snapshots (hyperframes snapshot --review).
+
+      Each host's data-composition-id must equal the composition id INSIDE the
+      source file, and that file registers its own paused timeline under that
+      same key.
+    -->
+    <div
+      id="root"
+      data-composition-id="launch-card"
+      data-start="0"
+      data-duration="12"
+      data-width="1920"
+      data-height="1080"
+      data-fps="30"
+      data-no-timeline
+    >
+      <div
+        id="scene-wordmark"
+        data-composition-id="wordmark"
+        data-composition-src="./compositions/wordmark.html"
+        data-start="0"
+        data-duration="2.5"
+        data-track-index="0"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <div
+        id="scene-lines"
+        data-composition-id="lines"
+        data-composition-src="./compositions/lines.html"
+        data-start="2.5"
+        data-duration="4.5"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <div
+        id="scene-countup"
+        data-composition-id="countup"
+        data-composition-src="./compositions/countup.html"
+        data-start="7"
+        data-duration="2"
+        data-track-index="2"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <div
+        id="scene-lockup"
+        data-composition-id="lockup"
+        data-composition-src="./compositions/lockup.html"
+        data-start="9"
+        data-duration="3"
+        data-track-index="3"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <!--
+        Music is NOT declared here on purpose. The bed is synthesized from the
+        brief's beat grid (scripts/music.mjs) and muxed onto the finished video
+        by scripts/motion-render.mjs. Keeping the composition video-only means
+        the picture renders identically with or without an audio toolchain, and
+        the mux is one explicit, inspectable ffmpeg call.
+
+        To hand-author audio instead, add an <audio> element here and render
+        with `--no-audio` so the wrapper leaves the mux alone.
+      -->
+
+      <div id="vignette"></div>
+    </div>
+  </body>
+</html>

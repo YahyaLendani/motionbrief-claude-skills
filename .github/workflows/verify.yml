@@ -1,0 +1,108 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Validators and both templates, on every platform we support.
+  verify:
+    name: verify (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate the example brief
+        run: node skills/motionbrief/scripts/brief.mjs skills/motionbrief/assets/hyperframes/brief.json
+
+      - name: Synthesize the music bed
+        run: node skills/motionbrief/scripts/music.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --out skills/motionbrief/assets/hyperframes/audio/music.wav
+
+      - name: Music is deterministic
+        run: |
+          node skills/motionbrief/scripts/music.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --out "${{ runner.temp }}/again.wav"
+          node -e "const a=require('fs').readFileSync('skills/motionbrief/assets/hyperframes/audio/music.wav');const b=require('fs').readFileSync(process.argv[1]);if(!a.equals(b)){console.error('music is not deterministic');process.exit(1)}console.log('bit-identical')" "${{ runner.temp }}/again.wav"
+
+      - name: Contract check — HyperFrames template
+        run: node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/hyperframes
+
+      - name: Contract check — Remotion template (against the same brief)
+        run: node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/remotion --brief skills/motionbrief/assets/hyperframes/brief.json
+
+      - name: Tests
+        run: npm test
+
+      - name: Render command dry run
+        run: node skills/motionbrief/scripts/motion-render.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --dry-run
+
+  # The real linter, once, on Linux.
+  lint:
+    name: hyperframes lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Lint the template
+        env:
+          HYPERFRAMES_NO_UPDATE_CHECK: "1"
+          HYPERFRAMES_SKIP_SKILLS: "1"
+          HYPERFRAMES_AGENT: "1"
+        run: npx --yes hyperframes@latest lint skills/motionbrief/assets/hyperframes
+
+  # Both installers, on the platforms that own them.
+  install:
+    name: install (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install (POSIX)
+        if: runner.os != 'Windows'
+        run: |
+          bash install.sh --target ./test-claude
+          test -f test-claude/skills/motionbrief/SKILL.md
+          test -f test-claude/skills/motionbrief/scripts/brief.mjs
+          test -f test-claude/commands/motion.md
+          test ! -d test-claude/skills/motionbrief/assets/hyperframes/.hyperframes
+
+      - name: Install (PowerShell)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./install.ps1 -Target ./test-claude
+          if (-not (Test-Path test-claude/skills/motionbrief/SKILL.md)) { throw "skill missing" }
+          if (-not (Test-Path test-claude/skills/motionbrief/scripts/brief.mjs)) { throw "script missing" }
+          if (-not (Test-Path test-claude/commands/motion.md)) { throw "command missing" }
+          if (Test-Path test-claude/skills/motionbrief/assets/hyperframes/.hyperframes) { throw "cache leaked" }
+
+      - name: Installed skill still runs
+        if: runner.os != 'Windows'
+        run: node test-claude/skills/motionbrief/scripts/check-contract.mjs --dir test-claude/skills/motionbrief/assets/hyperframes

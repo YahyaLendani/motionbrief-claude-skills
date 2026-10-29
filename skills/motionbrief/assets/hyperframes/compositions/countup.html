@@ -1,0 +1,103 @@
+<template>
+  <style>
+    #st-root {
+      position: absolute;
+      inset: 0;
+      background: var(--bg, #08090c);
+      display: grid;
+      place-items: center;
+      font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+
+    #st-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    #st-label {
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--dim, #6b7280);
+      opacity: 0;
+    }
+
+    #st-value {
+      font-size: 244px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      color: var(--fg, #f4f5f7);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      opacity: 0;
+    }
+
+    #st-bar {
+      width: 0;
+      height: 4px;
+      background: var(--accent, #7dd3fc);
+      opacity: 0;
+    }
+  </style>
+
+  <div id="st-root" data-composition-id="countup" data-width="1920" data-height="1080">
+    <div id="st-inner">
+      <div id="st-label">renders</div>
+      <div id="st-value">0</div>
+      <div id="st-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+      var el = document.getElementById("st-value");
+
+      tl.fromTo(
+        "#st-label",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
+        0,
+      );
+
+      tl.fromTo(
+        "#st-value",
+        { opacity: 0, scale: 0.94 },
+        { opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" },
+        0.15,
+      );
+
+      // Physical count-up: the number is the animation. No overshoot — a
+      // counter that flies past its target shows a number that was never true.
+      var counter = { v: 0 };
+      tl.to(
+        counter,
+        {
+          v: 12480,
+          duration: 1.2,
+          ease: "power2.out",
+          onUpdate: function () {
+            el.textContent = Math.round(counter.v).toLocaleString("en-US");
+          },
+        },
+        0.2,
+      );
+
+      tl.fromTo(
+        "#st-bar",
+        { width: 0, opacity: 0 },
+        { width: 520, opacity: 0.9, duration: 1.2, ease: "power2.out" },
+        0.2,
+      );
+
+      tl.to("#st-inner", { y: -50, opacity: 0, duration: 0.4, ease: "power3.in" }, 1.4);
+
+      window.__timelines["countup"] = tl;
+    })();
+  </script>
+</template>
