@@ -242,7 +242,8 @@ The composition changes only when `kind` or `motion` changes.
 
 | Need | For | Check |
 |---|---|---|
-| **Node 18+** | everything | `node --version` |
+| **Node 18+** | the skill's scripts (validate, check, music) | `node --version` |
+| **Node 22+** | the HyperFrames engine (`npx hyperframes`) | `node --version` |
 | **Claude Code** | the `/motion` path (optional) | `claude --version` |
 | **FFmpeg + FFprobe** | rendering, and muxing the music | `ffmpeg -version` |
 | `node_modules` | Remotion only | `npm install` |

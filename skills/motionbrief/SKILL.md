@@ -291,7 +291,8 @@ Linux, WSL and Windows — only the FFmpeg install differs.
 
 | Need | For | Check |
 | - | - | - |
-| Node 18+ | everything (`npx`) | `node --version` |
+| Node 18+ | the skill's scripts (`brief`, `check-contract`, `music`) | `node --version` |
+| Node 22+ | HyperFrames (`npx hyperframes` refuses older Node) | `node --version` |
 | **FFmpeg + FFprobe on PATH** | **HyperFrames `render`** | `ffmpeg -version` |
 | Chrome | both lanes | downloaded on first run |
 | `node_modules` | Remotion only | `ls node_modules` |
