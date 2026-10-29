@@ -2,7 +2,7 @@
 
 **A brief your agent can't drift from.**
 
-[![CI](https://github.com/YahyaLendani/motionbrief/actions/workflows/verify.yml/badge.svg)](https://github.com/YahyaLendani/motionbrief/actions/workflows/verify.yml)
+[![CI](https://github.com/YahyaLendani/motionbrief-claude-skills/actions/workflows/verify.yml/badge.svg)](https://github.com/YahyaLendani/motionbrief-claude-skills/actions/workflows/verify.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7dd3fc?style=flat-square)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A518-7dd3fc?style=flat-square)](package.json)
 [![Platforms](https://img.shields.io/badge/macOS%20%7C%20Linux%20%7C%20Windows-7dd3fc?style=flat-square)](#platforms)
@@ -173,7 +173,7 @@ npx skills add YahyaLendani/motionbrief
 Or clone and run the installer:
 
 ```bash
-git clone https://github.com/YahyaLendani/motionbrief.git
+git clone https://github.com/YahyaLendani/motionbrief-claude-skills.git
 cd motionbrief
 bash install.sh          # macOS / Linux / WSL / git-bash
 ```
