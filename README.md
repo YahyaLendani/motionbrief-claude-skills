@@ -174,7 +174,7 @@ Or clone and run the installer:
 
 ```bash
 git clone https://github.com/YahyaLendani/motionbrief-claude-skills.git
-cd motionbrief
+cd motionbrief-claude-skills
 bash install.sh          # macOS / Linux / WSL / git-bash
 ```
 
@@ -196,15 +196,20 @@ brief · ember-sting · hyperframes · 8s 1920x1080 @30 · mp4
 
   BEAT              TIME         KIND         MOTION          COPY
   0 mark            0.0–2.0s     logo         settle-in       "EMBER"
-  1 lines           2.0–6.0s     kinetic      word-stagger    "Roasted Tuesday." +1
-  2 lockup          6.0–8.0s     lockup       settle-in       "Ember" +1
+  1 lines           2.0–5.5s     kinetic      word-stagger    "Roasted Tuesday." +1
+  2 lockup          5.5–8.0s     lockup       settle-in       "Ember" +1
 
   feel    energy=high ease=snappy overshoot=objects-only transition=cinematic-zoom
-  music   high · 128 BPM · C minor · beat every 0.469s
+  brand   Ember
+  palette bg=#0b0907 fg=#f6f1ea accent=#f59e0b
+  assets  none   audio generated
+  music   high · 120 BPM · C minor · beat every 0.500s
 
   assumptions
     · No tagline supplied — copy derived from your description.
     · Single warm accent on near-black, since no brand colours were given.
+
+  clean — timing tiles, first frame deliberate, closing line readable
 ```
 
 ### Without Claude
@@ -221,27 +226,32 @@ Or through the repo's own example:
 
 ```bash
 npm run verify     # validate the brief and both templates
-npm run render     # music + picture + mux → renders/inkwell-launch.mp4
+npm run render     # music + picture + mux → renders/motions-launch.mp4
 ```
 
 ---
 
 ## The brief
 
+This is the brief behind the video at the top, trimmed: the per-beat `notes`,
+the type settings and the `assumptions` are left out. The full file is
+[`examples/motionbrief-intro/brief.json`](examples/motionbrief-intro/brief.json).
+
 ```json
 {
-  "slug": "inkwell-launch",
+  "slug": "motionbrief-intro",
   "lane": "hyperframes",
-  "format": { "width": 1920, "height": 1080, "fps": 30, "duration": 12, "container": "mp4" },
-  "feel": { "energy": "medium", "ease": "snappy", "overshoot": "objects-only" },
+  "format": { "width": 1920, "height": 1080, "fps": 60, "duration": 17, "container": "mp4" },
+  "brand": { "name": "MotionBrief", "tagline": "A brief your agent can't drift from.", "palette": { "bg": "#08090c", "fg": "#f4f5f7", "accent": "#7dd3fc" } },
+  "feel": { "energy": "medium", "ease": "snappy", "overshoot": "objects-only", "transition": "cinematic-zoom" },
   "audio": { "policy": "generated", "bpm": 120, "preset": "medium", "key": "A", "mode": "minor" },
   "beats": [
-    { "id": "wordmark", "start": 0,   "duration": 2.5, "kind": "logo",    "motion": "settle-in",    "visibleAtStart": true, "copy": ["INKWELL"] },
-    { "id": "lines",    "start": 2.5, "duration": 4.5, "kind": "kinetic", "motion": "word-stagger", "copy": ["Write it down.", "Find it later."] },
-    { "id": "stat",     "start": 7.0, "duration": 2.0, "kind": "stat",    "motion": "count",        "copy": ["notes captured", "12,480"] },
-    { "id": "lockup",   "start": 9.0, "duration": 3.0, "kind": "lockup",  "motion": "settle-in",    "hold": 2.1, "copy": ["Inkwell"] }
-  ],
-  "assumptions": ["No tagline was supplied, so copy is derived from the description."]
+    { "id": "logo",     "start": 0,    "duration": 4,   "kind": "logo",    "motion": "assemble",     "visibleAtStart": true, "copy": ["MotionBrief"] },
+    { "id": "sentence", "start": 4,    "duration": 3,   "kind": "kinetic", "motion": "word-stagger", "copy": ["Describe the video in one sentence."] },
+    { "id": "grid",     "start": 7,    "duration": 3.5, "kind": "chart",   "motion": "grow",         "copy": ["brief.json", "Every cut, every hold, every word."] },
+    { "id": "same",     "start": 10.5, "duration": 2.5, "kind": "kinetic", "motion": "scale-in",     "copy": ["Same brief,", "same cuts,", "same words,", "byte-identical music."] },
+    { "id": "lockup",   "start": 13,   "duration": 4,   "kind": "lockup",  "motion": "settle-in",    "hold": 2.35, "copy": ["MotionBrief", "A brief your agent can't drift from.", "npx skills add YahyaLendani/motionbrief-claude-skills"] }
+  ]
 }
 ```
 
@@ -317,10 +327,13 @@ skills/motionbrief/
     check-contract.mjs  offline pre-flight for both engines
     motion-render.mjs   music → lint → check → render → mux, single or batch
   assets/
-    hyperframes/        the 12 s book in the GIF above (root + 4 sub-compositions)
+    hyperframes/        the 12 s Motions launch card (root + 4 sub-compositions)
     remotion/           the same piece in React
     preview.jpg         one settled frame per beat
-docs/                   README media
+examples/
+  motionbrief-intro/    the 17 s intro at the top of this README (root + 5 scenes)
+tests/                  npm test: each test breaks a template and checks the error
+docs/                   README media (intro.mp4, intro.gif, intro.jpg)
 .claude/commands/motion.md
 .github/workflows/verify.yml
 install.sh · install.ps1
@@ -351,12 +364,18 @@ install.sh · install.ps1
 Everything below was run, not assumed.
 
 - `hyperframes lint` — **0 errors, 0 warnings** across all five template files,
-  and clean on the 9 s promo example too
-- `hyperframes check` — runtime, layout (0 issues over 9 samples), motion and craft
-  all clean; **10/10 text passes WCAG AA**. Its `audio_none` line is expected: the
-  composition is deliberately video-only and the bed is muxed afterwards.
-- **The MP4 behind this README is real** — rendered from the committed brief,
-  h264 + AAC, 9.0 s, 1920×1080, 30 fps, 546 KB
+  and across the six files of the intro example
+- `hyperframes check` on the template — runtime, layout (0 issues over 9 samples),
+  motion and craft all clean; **10/10 text passes WCAG AA**. Its `audio_none` line
+  is expected: the composition is deliberately video-only and the bed is muxed
+  afterwards.
+- `hyperframes check` on the intro — passes with 0 errors; runtime and motion
+  clean, **97/97 text passes WCAG AA**. Its three warnings are expected: the
+  lockup's glow runs past the frame on purpose, the music is muxed afterwards, and
+  `line_unread` counts each typed letter of the install command as a word.
+- **The MP4 behind this README is real** — rendered from
+  `examples/motionbrief-intro/brief.json`, h264 + AAC, 17.0 s, 1920×1080, 60 fps,
+  3.3 MB. The GIF is the same film at 25 fps and 880 px wide.
 - `music.mjs` — deterministic: the same brief produces a byte-identical WAV
   (asserted in CI)
 - `brief.mjs` — passes both committed briefs and returns every expected error and

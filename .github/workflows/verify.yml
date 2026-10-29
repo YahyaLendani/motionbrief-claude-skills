@@ -44,6 +44,12 @@ jobs:
       - name: Contract check — Remotion template (against the same brief)
         run: node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/remotion --brief skills/motionbrief/assets/hyperframes/brief.json
 
+      - name: Validate the README intro brief
+        run: node skills/motionbrief/scripts/brief.mjs examples/motionbrief-intro/brief.json
+
+      - name: Contract check — README intro
+        run: node skills/motionbrief/scripts/check-contract.mjs --dir examples/motionbrief-intro
+
       - name: Tests
         run: npm test
 
@@ -61,12 +67,14 @@ jobs:
         with:
           # HyperFrames itself requires Node 22+; the skill's scripts run on 18+.
           node-version: 22
-      - name: Lint the template
+      - name: Lint the template and the README intro
         env:
           HYPERFRAMES_NO_UPDATE_CHECK: "1"
           HYPERFRAMES_SKIP_SKILLS: "1"
           HYPERFRAMES_AGENT: "1"
-        run: npx --yes hyperframes@latest lint skills/motionbrief/assets/hyperframes
+        run: |
+          npx --yes hyperframes@latest lint skills/motionbrief/assets/hyperframes
+          npx --yes hyperframes@latest lint examples/motionbrief-intro
 
   # Both installers, on the platforms that own them.
   install:

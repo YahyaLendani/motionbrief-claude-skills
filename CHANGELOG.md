@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+**README**
+- The header is now a 17 s, 60 fps intro built from its own brief,
+  `examples/motionbrief-intro/brief.json`. The README shows it as a 25 fps GIF
+  that links to the MP4. It replaces `docs/preview.gif`, `docs/preview.mp4` and
+  `docs/poster.jpg`.
+- The repo moved to `YahyaLendani/motionbrief-claude-skills`. The install
+  command, CI badge and clone steps follow.
+- "The brief" now shows the intro's own brief. The Quick start summary is real
+  `brief.mjs` output: the old one cut off its own 128 BPM grid, which the
+  validator rejects.
+- `npm run verify` and CI also validate the intro's brief and build, and lint it.
+  `npm run render:intro` renders it; `npm run gif` rebuilds `docs/intro.gif`.
+
 Both templates were rendered and reviewed frame by frame. Every automated check
 passed, yet the film had faults only the frames showed. Those are now fixed, and
 the skill now reviews frames itself.

@@ -13,11 +13,15 @@
     "contract:hf": "node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/hyperframes",
     "contract:remotion": "node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/remotion --brief skills/motionbrief/assets/hyperframes/brief.json",
     "lint:hf": "npx --yes hyperframes@latest lint skills/motionbrief/assets/hyperframes",
+    "brief:intro": "node skills/motionbrief/scripts/brief.mjs examples/motionbrief-intro/brief.json",
+    "contract:intro": "node skills/motionbrief/scripts/check-contract.mjs --dir examples/motionbrief-intro",
+    "lint:intro": "npx --yes hyperframes@latest lint examples/motionbrief-intro",
     "test": "node --test tests/brief.test.mjs tests/check-contract.test.mjs tests/motion-render.test.mjs",
-    "verify": "npm run brief && npm run contract:hf && npm run contract:remotion && npm test",
+    "verify": "npm run brief && npm run contract:hf && npm run contract:remotion && npm run brief:intro && npm run contract:intro && npm test",
     "render": "node skills/motionbrief/scripts/motion-render.mjs --brief skills/motionbrief/assets/hyperframes/brief.json",
     "render:batch": "node skills/motionbrief/scripts/motion-render.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --batch skills/motionbrief/assets/hyperframes/rows.example.json",
+    "render:intro": "node skills/motionbrief/scripts/motion-render.mjs --brief examples/motionbrief-intro/brief.json",
     "render:dry": "node skills/motionbrief/scripts/motion-render.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --dry-run",
-    "gif": "ffmpeg -y -i skills/motionbrief/assets/hyperframes/renders/motions-launch.mp4 -vf \"fps=10,scale=880:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=144[p];[s1][p]paletteuse=dither=bayer:bayer_scale=4\" -loop 0 docs/preview.gif"
+    "gif": "ffmpeg -y -i docs/intro.mp4 -vf \"fps=25,scale=880:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=144[p];[s1][p]paletteuse=dither=bayer:bayer_scale=4\" -loop 0 docs/intro.gif"
   }
 }

@@ -7,9 +7,6 @@ out/
 *.gif
 
 # the README's own media is the exception — it is committed on purpose
-!docs/preview.gif
-!docs/preview.mp4
-!docs/poster.jpg
 !docs/intro.gif
 !docs/intro.mp4
 !docs/intro.jpg
