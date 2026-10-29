@@ -1,6 +1,6 @@
 {
   "name": "motionbrief",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Motion graphics from a brief your agent can't drift from",
   "type": "module",

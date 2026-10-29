@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-10-29
+
+The brief is now enforced, not just written: a build that drifts from it fails
+before it renders. First public release.
 
 **The build is held to the brief**
 - `check-contract.mjs` now compares the project with `brief.json` (found in the
@@ -30,10 +33,17 @@
 **CI**
 - Dropped two steps that pointed at `examples/skills-in-motion/`, an empty folder
   that would have failed every run.
+- The HyperFrames lint job runs on Node 22, which HyperFrames requires.
 
 **Docs**
 - The Remotion template's entry is `src/index.tsx`; SKILL.md and
   `check-contract.mjs` said `src/index.ts`.
+- Prerequisites now say Node 22+ for HyperFrames; the skill's scripts still run
+  on Node 18+.
+
+**Licence**
+- `LICENSE` is plain MIT, so GitHub detects it. The engines' own licences moved
+  to `THIRD_PARTY_NOTICES.md`. The copyright line names the current project.
 
 ## 0.3.0
 
