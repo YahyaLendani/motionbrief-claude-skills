@@ -12,17 +12,9 @@ const COLS = 24;
 const ROWS = 14;
 const DOT_COUNT = COLS * ROWS;
 
-const EXIT_START = 56;
-const EXIT_END = 70;
-
+// No exit here: ZoomThrough in LaunchCard carries the beat out on the cut.
 export const Wordmark: React.FC<{ brand: string }> = ({ brand }) => {
   const frame = useCurrentFrame();
-
-  const exit = interpolate(frame, [EXIT_START, EXIT_END], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.in(Easing.cubic),
-  });
 
   // The mark is on screen at frame 0 and settles into place. It never enters
   // from an empty frame — frame 0 is the thumbnail on social players.
@@ -45,7 +37,7 @@ export const Wordmark: React.FC<{ brand: string }> = ({ brand }) => {
           display: "grid",
           gridTemplateColumns: `repeat(${COLS}, 1fr)`,
           gridTemplateRows: `repeat(${ROWS}, 1fr)`,
-          opacity: 0.16 * (1 - exit),
+          opacity: 0.16,
         }}
       >
         {new Array(DOT_COUNT).fill(true).map((_, i) => {
@@ -91,8 +83,7 @@ export const Wordmark: React.FC<{ brand: string }> = ({ brand }) => {
               letterSpacing: "-0.045em",
               lineHeight: 1,
               color: COLORS.fg,
-              opacity: 1 - exit,
-              transform: `translateY(${(1 - markIn) * 34 - exit * 80}px) scale(${
+              transform: `translateY(${(1 - markIn) * 34}px) scale(${
                 0.985 + markIn * 0.015
               })`,
               filter: `blur(${(1 - markIn) * 7}px)`,
@@ -109,10 +100,9 @@ export const Wordmark: React.FC<{ brand: string }> = ({ brand }) => {
               left: "50%",
               bottom: -44,
               height: 3,
-              width: 520 * ruleIn * (1 - exit),
+              width: 520 * ruleIn,
               background: COLORS.accent,
               transform: "translateX(-50%)",
-              opacity: 1 - exit,
             }}
           />
         </div>

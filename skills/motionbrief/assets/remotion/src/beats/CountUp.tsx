@@ -4,9 +4,10 @@ import { COLORS, FONT_STACK } from "../theme";
 
 const LABEL_IN = [0, 13] as const;
 const VALUE_IN = [4, 15] as const;
-const COUNT = [6, 42] as const;
-const EXIT_START = 42;
-const EXIT_END = 54;
+// The count lands at frame 33 (1.1 s) and holds the true number for a full
+// beat before ZoomThrough carries it out — a stat that exits the instant it
+// lands is never read.
+const COUNT = [6, 33] as const;
 
 const nf = new Intl.NumberFormat("en-US");
 
@@ -37,12 +38,6 @@ export const CountUp: React.FC<{ label: string; value: number }> = ({
     easing: Easing.out(Easing.quad),
   });
 
-  const exit = interpolate(frame, [EXIT_START, EXIT_END], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.in(Easing.cubic),
-  });
-
   return (
     <AbsoluteFill
       style={{
@@ -50,8 +45,6 @@ export const CountUp: React.FC<{ label: string; value: number }> = ({
         justifyContent: "center",
         alignItems: "center",
         fontFamily: FONT_STACK,
-        opacity: 1 - exit,
-        transform: `translateY(${-exit * 50}px)`,
       }}
     >
       <div
@@ -64,7 +57,7 @@ export const CountUp: React.FC<{ label: string; value: number }> = ({
       >
         <div
           style={{
-            fontSize: 30,
+            fontSize: 40,
             fontWeight: 600,
             letterSpacing: "0.34em",
             textTransform: "uppercase",

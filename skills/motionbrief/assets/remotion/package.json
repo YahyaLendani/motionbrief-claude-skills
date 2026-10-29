@@ -4,15 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "remotion studio src/index.ts",
-    "compositions": "remotion compositions src/index.ts",
-    "still": "remotion still src/index.ts LaunchCard out/frame.png --frame=90",
-    "render": "remotion render src/index.ts LaunchCard out/launch-card.mp4",
-    "render:alpha": "remotion render src/index.ts LaunchCard out/launch-card.mov --codec=prores --pixel-format=yuva444p10le",
+    "dev": "remotion studio src/index.tsx",
+    "compositions": "remotion compositions src/index.tsx",
+    "still": "remotion still src/index.tsx LaunchCard out/frame.png --frame=90",
+    "render": "remotion render src/index.tsx LaunchCard out/launch-card.mp4",
+    "render:alpha": "remotion render src/index.tsx LaunchCard out/launch-card.mov --codec=prores --pixel-format=yuva444p10le",
     "upgrade": "remotion upgrade"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.0",
+    "@remotion/google-fonts": "^4.0.0",
     "@remotion/transitions": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -18,7 +18,7 @@
     }
 
     #lk-title {
-      font-size: 96px;
+      font-size: 128px;
       font-weight: 800;
       letter-spacing: -0.04em;
       color: var(--fg, #f4f5f7);
@@ -27,7 +27,8 @@
     }
 
     #lk-tag {
-      font-size: 40px;
+      /* 56 px: the closing line must still read on a phone-width player */
+      font-size: 56px;
       font-weight: 500;
       color: var(--dim, #6b7280);
       letter-spacing: -0.01em;
@@ -46,6 +47,14 @@
     (function () {
       window.__timelines = window.__timelines || {};
       var tl = gsap.timeline({ paused: true });
+
+      // arrive from just behind the previous beat's zoom
+      tl.fromTo(
+        "#lk-inner",
+        { scale: 0.92, filter: "blur(6px)" },
+        { scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" },
+        0,
+      );
 
       tl.fromTo(
         "#lk-title",

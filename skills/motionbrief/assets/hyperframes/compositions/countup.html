@@ -18,7 +18,7 @@
     }
 
     #st-label {
-      font-size: 30px;
+      font-size: 40px;
       font-weight: 600;
       letter-spacing: 0.34em;
       text-transform: uppercase;
@@ -59,6 +59,13 @@
       var el = document.getElementById("st-value");
 
       tl.fromTo(
+        "#st-inner",
+        { scale: 0.92, filter: "blur(6px)" },
+        { scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" },
+        0,
+      );
+
+      tl.fromTo(
         "#st-label",
         { opacity: 0, y: 16 },
         { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
@@ -79,7 +86,7 @@
         counter,
         {
           v: 12480,
-          duration: 1.2,
+          duration: 0.9,
           ease: "power2.out",
           onUpdate: function () {
             el.textContent = Math.round(counter.v).toLocaleString("en-US");
@@ -91,11 +98,17 @@
       tl.fromTo(
         "#st-bar",
         { width: 0, opacity: 0 },
-        { width: 520, opacity: 0.9, duration: 1.2, ease: "power2.out" },
+        { width: 520, opacity: 0.9, duration: 0.9, ease: "power2.out" },
         0.2,
       );
 
-      tl.to("#st-inner", { y: -50, opacity: 0, duration: 0.4, ease: "power3.in" }, 1.4);
+      // The count lands at 1.1 s and the true number holds for a full beat.
+      // Exiting the instant it lands means 12,480 is never actually read.
+      tl.to(
+        "#st-root",
+        { scale: 1.14, opacity: 0, filter: "blur(6px)", duration: 0.4, ease: "power2.in" },
+        1.6,
+      );
 
       window.__timelines["countup"] = tl;
     })();

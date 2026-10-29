@@ -1,3 +1,13 @@
+import { loadFont } from "@remotion/google-fonts/Inter";
+
+// Load the brief's typeface. Without this the render silently falls back to
+// whatever the machine has installed, so two machines render different films.
+// The loader holds the render until the font is ready.
+const { fontFamily } = loadFont("normal", {
+  weights: ["500", "600", "800"],
+  subsets: ["latin"],
+});
+
 export const COLORS = {
   bg: "#08090c",
   fg: "#f4f5f7",
@@ -5,8 +15,7 @@ export const COLORS = {
   accent: "#7dd3fc",
 } as const;
 
-export const FONT_STACK =
-  'Inter, "Segoe UI", system-ui, -apple-system, sans-serif';
+export const FONT_STACK = `${fontFamily}, "Segoe UI", system-ui, -apple-system, sans-serif`;
 
 export const FPS = 30;
 export const DURATION_IN_FRAMES = 360; // 12 s

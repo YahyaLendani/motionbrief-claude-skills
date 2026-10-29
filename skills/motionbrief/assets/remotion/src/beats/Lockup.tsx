@@ -39,7 +39,7 @@ export const Lockup: React.FC<{ brand: string; tagline: string }> = ({
       >
         <div
           style={{
-            fontSize: 96,
+            fontSize: 128,
             fontWeight: 800,
             letterSpacing: "-0.04em",
             lineHeight: 1,
@@ -52,7 +52,8 @@ export const Lockup: React.FC<{ brand: string; tagline: string }> = ({
         </div>
         <div
           style={{
-            fontSize: 38,
+            // 56 px: the closing line must still read on a phone-width player
+            fontSize: 56,
             fontWeight: 500,
             letterSpacing: "-0.01em",
             color: COLORS.dim,

@@ -5,6 +5,7 @@ import { Wordmark } from "./beats/Wordmark";
 import { KineticLines } from "./beats/KineticLines";
 import { CountUp } from "./beats/CountUp";
 import { Lockup } from "./beats/Lockup";
+import { ZoomThrough } from "./ZoomThrough";
 
 export type LaunchCardProps = {
   brand: string;
@@ -31,11 +32,16 @@ export const LaunchCard: React.FC<LaunchCardProps> = ({
         name="Wordmark"
         layout="absolute-fill"
       >
-        <Wordmark brand={brand} />
+        {/* Frame 0 is the thumbnail: the mark is already there, no zoom in. */}
+        <ZoomThrough durationInFrames={WORDMARK_LEN} enter={false}>
+          <Wordmark brand={brand} />
+        </ZoomThrough>
       </Sequence>
 
       <Sequence from={BEATS.lines} durationInFrames={LINES_LEN} name="Lines">
-        <KineticLines />
+        <ZoomThrough durationInFrames={LINES_LEN}>
+          <KineticLines />
+        </ZoomThrough>
       </Sequence>
 
       <Sequence
@@ -43,7 +49,9 @@ export const LaunchCard: React.FC<LaunchCardProps> = ({
         durationInFrames={COUNTUP_LEN}
         name="CountUp"
       >
-        <CountUp label="renders" value={statValue} />
+        <ZoomThrough durationInFrames={COUNTUP_LEN}>
+          <CountUp label="renders" value={statValue} />
+        </ZoomThrough>
       </Sequence>
 
       <Sequence
@@ -51,7 +59,10 @@ export const LaunchCard: React.FC<LaunchCardProps> = ({
         durationInFrames={LOCKUP_LEN}
         name="Lockup"
       >
-        <Lockup brand={brand} tagline={tagline} />
+        {/* The last beat holds to the end — nothing to cut to. */}
+        <ZoomThrough durationInFrames={LOCKUP_LEN} exit={false}>
+          <Lockup brand={brand} tagline={tagline} />
+        </ZoomThrough>
       </Sequence>
 
       {/* Vignette sits above every beat — one depth cue, not three. */}

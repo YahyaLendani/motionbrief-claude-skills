@@ -162,8 +162,40 @@ A timing it cannot resolve to a number is `brief_timing_unverified`, a warning.
 Fix drift in the code, or change the brief on purpose and re-run `brief.mjs` —
 never let the two disagree.
 
-**Done when** every checklist line under "Ship checklist" holds and you have
-looked at at least the first frame, one mid-beat frame, and the last frame.
+#### Review the frames — every check can pass on a broken film
+
+Lint, layout, motion, contrast and craft checks all passed on this skill's own
+template while it cut to black on every beat and exited its count-up the
+instant the number landed. Only looking at frames caught it. Capture them:
+
+```bash
+# HyperFrames: beat frames, a 5-frame strip around every cut, and a phone sheet
+node scripts/motion-render.mjs --brief ./my-video/brief.json --snapshot --no-render
+
+# Remotion: for each cut c (in frames), grab c-6, c and c+6, plus each beat's middle
+# (the template cuts at 75, 210 and 270)
+node scripts/motion-render.mjs --dir ./my-video --no-render \
+  --stills 37,69,75,81,142,204,210,216,240,264,270,276,315
+```
+
+Then read the images and answer each question. Fix the code, re-capture, look again:
+
+- **Is the cut black?** More than one empty frame around a cut means the exit
+  finishes early and the next beat fades in from nothing. Move the exit so it
+  *ends on the cut* (`start = beat duration − exit duration`).
+- **Does the payoff hold?** A count-up's final number, or a line's last word,
+  stays still on screen for at least one beat (`60 / bpm` s) before it leaves.
+  Exiting the moment it lands means it is never read.
+- **Does it read on a phone?** Check `review-phone.jpg`, or picture the frame
+  at 360 px wide. At 1080p, labels and taglines under ~40 px usually fail.
+- **Is it the brief's font?** A fallback such as Segoe UI or Arial means the font
+  never loaded, and another machine will render a different film. Remotion needs
+  `@remotion/google-fonts` (or `@remotion/fonts` for a local file).
+- **Is it the brief's transition?** `feel.transition` is in the frames around
+  each cut, not a dip to black.
+
+**Done when** you have read the beat frames and every seam strip, answered each
+question above, and every checklist line under "Ship checklist" holds.
 
 ### 5. Render
 
@@ -238,7 +270,8 @@ renders as a jump cut with a dip in the middle.
 - [ ] Timeline registered under the composition id (HyperFrames), or composition
       listed by `npx remotion compositions` (Remotion).
 - [ ] Lint/check clean.
-- [ ] Frames inspected: first, mid-beat, last.
+- [ ] Frames inspected: every beat, every seam, phone width — no black at a cut,
+      the payoff holds for a beat, small text reads, the brief's font loaded.
 - [ ] Nothing keeps moving after it settles.
 - [ ] First and last frames deliberate; overlays fully clear.
 - [ ] Output format matches the brief — alpha only if it composites over footage.

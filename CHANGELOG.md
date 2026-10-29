@@ -1,5 +1,35 @@
 # Changelog
 
+## Unreleased
+
+Both templates were rendered and reviewed frame by frame. Every automated check
+passed, yet the film had faults only the frames showed. Those are now fixed, and
+the skill now reviews frames itself.
+
+**Templates (both engines)**
+- Cuts no longer land on black. Every beat cleared 0.1–0.35 s before its cut and
+  the next faded in from nothing: a dip at every cut, breaking the skill's own
+  rule. Exits now finish on the cut as the brief's `cinematic-zoom`, and the
+  next beat arrives from just behind it. In Remotion this lives in one
+  `ZoomThrough` wrapper.
+- The count-up's final number now holds. It used to start its exit on the frame
+  it reached 12,480, so the true value was never on screen still. It now lands
+  at 1.1 s and holds for a full beat.
+- Small text reads at phone width: stat label 30→40 px, closing title 96→128 px,
+  tagline 40→56 px.
+
+**Remotion template**
+- It rendered in the machine's fallback font (Segoe UI on Windows), not Inter.
+  Inter now loads through `@remotion/google-fonts`, so both engines match.
+- Every `npm run` script pointed at `src/index.ts`, but the entry is
+  `src/index.tsx`, so `dev`, `still`, `render` and the rest all failed.
+- First real render: 12 s at 1080p in about 17 s, contract clean.
+
+**Skill**
+- Step 4 now has a frame review: capture beat and seam frames (`--snapshot`, or
+  `--stills` for Remotion), then check for black at cuts, a payoff that never
+  holds, text too small for a phone, a fallback font, and the wrong transition.
+
 ## 0.4.0 — 2026-10-29
 
 The brief is now enforced, not just written: a build that drifts from it fails

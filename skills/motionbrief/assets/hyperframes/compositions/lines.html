@@ -53,11 +53,19 @@
         );
       });
 
-      // hold to 3.6, then all three lift out together
+      // arrive from just behind the previous beat's zoom
+      tl.fromTo(
+        "#ln-lines",
+        { scale: 0.92, filter: "blur(6px)" },
+        { scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" },
+        0,
+      );
+
+      // hold to 4.1, then zoom through, finishing on the cut at 4.5
       tl.to(
-        "#ln-lines span",
-        { y: -60, opacity: 0, duration: 0.45, ease: "power3.in", stagger: 0.06 },
-        3.6,
+        "#ln-root",
+        { scale: 1.14, opacity: 0, filter: "blur(6px)", duration: 0.4, ease: "power2.in" },
+        4.1,
       );
 
       window.__timelines["lines"] = tl;

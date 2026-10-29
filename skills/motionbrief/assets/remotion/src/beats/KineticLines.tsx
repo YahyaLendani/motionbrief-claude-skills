@@ -8,9 +8,7 @@ const LINES = ["Brief in.", "Cut on beat.", "Same every time."];
 const LINE_STARTS = [0, 32, 63];
 const ENTRY_LEN = 21; // 0.7 s
 
-const EXIT_START = 108;
-const EXIT_LEN = 14;
-const EXIT_STAGGER = 2;
+// No exit here: the lines hold until ZoomThrough carries them out on the cut.
 
 export const KineticLines: React.FC = () => {
   const frame = useCurrentFrame();
@@ -45,17 +43,6 @@ export const KineticLines: React.FC = () => {
             },
           );
 
-          const exit = interpolate(
-            frame,
-            [EXIT_START + i * EXIT_STAGGER, EXIT_START + i * EXIT_STAGGER + EXIT_LEN],
-            [0, 1],
-            {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-              easing: Easing.in(Easing.cubic),
-            },
-          );
-
           const isLast = i === LINES.length - 1;
 
           return (
@@ -68,8 +55,8 @@ export const KineticLines: React.FC = () => {
                 lineHeight: 1,
                 color: isLast ? COLORS.accent : COLORS.fg,
                 // y + opacity only: one idea per move, nothing unreadable mid-flight
-                opacity: p * (1 - exit),
-                transform: `translateY(${(1 - p) * 90 - exit * 60}px)`,
+                opacity: p,
+                transform: `translateY(${(1 - p) * 90}px)`,
               }}
             >
               {line}
