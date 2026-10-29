@@ -20,7 +20,7 @@ from the brief, it fails before it renders.
 <sub>17 s · 1920×1080 · 60 fps · built from [`examples/motionbrief-intro/brief.json`](examples/motionbrief-intro/brief.json) — every cut on a 120 BPM grid, score synthesized from the same beat</sub>
 
 ```bash
-npx skills add YahyaLendani/motionbrief
+npx skills add YahyaLendani/motionbrief-claude-skills
 ```
 
 Then, in Claude Code:
@@ -167,7 +167,7 @@ in front of any HyperFrames or Remotion project.
 ### With Claude Code
 
 ```bash
-npx skills add YahyaLendani/motionbrief
+npx skills add YahyaLendani/motionbrief-claude-skills
 ```
 
 Or clone and run the installer:

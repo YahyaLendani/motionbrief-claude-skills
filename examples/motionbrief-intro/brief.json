@@ -80,7 +80,7 @@
       "copy": [
         "MotionBrief",
         "A brief your agent can't drift from.",
-        "npx skills add YahyaLendani/motionbrief"
+        "npx skills add YahyaLendani/motionbrief-claude-skills"
       ]
     }
   ],
@@ -95,7 +95,7 @@
   },
   "assumptions": [
     "Purpose: the intro video at the top of the repo README, so 1920x1080 landscape.",
-    "60 fps as requested; 17 s so each idea gets one beat-length idea plus a 2.6 s closing hold.",
+    "60 fps as requested; 17 s so each idea gets one beat-length idea plus a 2.35 s closing hold.",
     "The logo is new: a rounded square holding three 'brief' text lines that morph into a play triangle cut into three bands — brief becomes motion.",
     "Brand name written 'MotionBrief' (as asked) with 'Brief' in the accent colour.",
     "Copy is lifted verbatim from the README: the tagline, 'Describe the video in one sentence.', 'every cut, every hold, every word', 'Same brief, same cuts, same words, byte-identical music.' and the install command.",
