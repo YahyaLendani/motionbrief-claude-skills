@@ -97,6 +97,7 @@ jobs:
       HYPERFRAMES_SKIP_SKILLS: "1"
       HYPERFRAMES_AGENT: "1"
       MOTIONBRIEF_CHROME_NO_SANDBOX: "1"
+      MOTIONBRIEF_FULL_SIZE: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

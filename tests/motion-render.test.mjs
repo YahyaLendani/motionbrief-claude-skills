@@ -10,6 +10,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { HF, REMOTION, SKILL, TEMPLATE_BRIEF, cleanup, copyTemplate, edit, runScript } from "./helpers.mjs";
+import { browserExitMessage, sandboxOff } from "../skills/motionbrief/scripts/runtime-check.mjs";
 
 const SCRIPT = join(SKILL, "scripts", "motion-render.mjs");
 const steps = (stdout) => [...stdout.matchAll(/^== (.+)$/gm)].map((m) => m[1].split(" — ")[0]);
@@ -268,6 +269,31 @@ test("--no-audio on the remotion lane renders muted and records it", (t) => {
   assert.equal(report.audio.noAudio, true);
   assert.equal(report.audio.plan, "none");
   assert.deepEqual(report.validation, { skipped: true, reason: "--no-checks" });
+});
+
+test("the remotion lane asks for bt709 colour, except on a gif", (t) => {
+  const { dir, renders } = fakeRemotion(t, "none");
+  const mp4 = join(dir, "o.mp4");
+  assert.equal(render(["--brief", join(dir, "brief.json"), "--out", mp4, "--no-checks", ...UNMEASURED]).code, 0);
+  assert.ok(renders().at(-1).includes("--color-space=bt709"));
+  const gif = join(dir, "o.gif");
+  assert.equal(render(["--brief", join(dir, "brief.json"), "--out", gif, "--format", "gif", "--no-checks", ...UNMEASURED]).code, 0);
+  assert.ok(!renders().at(-1).includes("--color-space=bt709"));
+});
+
+test("a browser stopped by a long TMPDIR says so", () => {
+  const message = browserExitMessage(null, "FATAL:process_singleton_posix.cc:315] Socket path too long: /deep/SingletonSocket");
+  assert.match(message, /set a shorter TMPDIR/);
+  assert.match(message, /Socket path too long/);
+  assert.doesNotMatch(browserExitMessage(1, "some other failure"), /TMPDIR/);
+});
+
+test("the check runs an engine's browser as the engine does, sandbox off", () => {
+  assert.equal(sandboxOff(join("x", ".remotion", "chrome-headless-shell", "chrome-headless-shell.exe")), true);
+  assert.equal(sandboxOff(join("x", "chrome-headless-shell")), true);
+  if (process.env.MOTIONBRIEF_CHROME_NO_SANDBOX !== "1" && process.getuid?.() !== 0) {
+    assert.equal(sandboxOff(join("Google", "Chrome", "chrome.exe")), false, "a full Chrome keeps its sandbox");
+  }
 });
 
 test("an accepted unverified output is recorded in the report", (t) => {

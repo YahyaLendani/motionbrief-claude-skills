@@ -28,6 +28,7 @@ import {
   capture,
   displayCommand,
   engineBrowser,
+  explicitBrowser,
   ensureHyperframes,
   findBrowser,
   hyperframesEntry,
@@ -459,7 +460,7 @@ function verifyOutput(file, { expectDuration = true } = {}) {
     file,
     sizeBytes: statSync(file).size,
     sha256: sha256File(file),
-    video: video && { codec: video.codec_name, pixelFormat: video.pix_fmt, width: video.width, height: video.height, frameRate: video.r_frame_rate, averageFrameRate: video.avg_frame_rate, frames: video.nb_frames },
+    video: video && { codec: video.codec_name, pixelFormat: video.pix_fmt, colorRange: video.color_range ?? null, colorSpace: video.color_space ?? null, width: video.width, height: video.height, frameRate: video.r_frame_rate, averageFrameRate: video.avg_frame_rate, frames: video.nb_frames },
     audio: audio ? { codec: audio.codec_name, sampleRate: audio.sample_rate, channels: audio.channels, duration: audio.duration ?? null } : null,
     container: { name: probe.format?.format_name, brand: brand || null, duration: measuredDuration, encoder: probe.format?.tags?.encoder ?? null },
     checks,
@@ -580,8 +581,15 @@ async function prepareEngine() {
     throw new StepFailed("engine", `the remotion lane needs dependencies, and none are installed — run "npm ci" in ${dir}`);
   }
   recordEngine();
-  if (!findBrowser(dir)) {
-    await run("browser — none found, the engine fetches its own (needs network)", ...(isHF ? [process.execPath, [hyperframesEntry(), "browser", "ensure"]] : rm("browser", "ensure")));
+  // The gate should look through the browser that will render. Another Chrome is the
+  // fallback for a machine that cannot fetch it.
+  if (!explicitBrowser() && !engineBrowser(laneName, dir)) {
+    try {
+      await run("browser — the engine fetches its own (needs network)", ...(isHF ? [process.execPath, [hyperframesEntry(), "browser", "ensure"]] : rm("browser", "ensure")));
+    } catch (err) {
+      if (!findBrowser(dir, laneName)) throw err;
+      console.log(`   could not fetch it, so the runtime check uses ${findBrowser(dir, laneName)}, which may not be the browser that renders`);
+    }
   }
 }
 
@@ -614,11 +622,15 @@ async function runtimeGate() {
   }
 }
 
+// Remotion 4 leaves colour to its default, which comes out untagged or full range
+// depending on the platform and decodes differently from the HyperFrames lane.
+const REMOTION_COLOR = "--color-space=bt709";
+
 const REMOTION_CODECS = {
-  webm: ["--codec=vp9"],
-  mov: ["--codec=prores", "--prores-profile=4444", "--pixel-format=yuva444p10le", "--image-format=png"],
+  webm: ["--codec=vp9", REMOTION_COLOR],
+  mov: ["--codec=prores", "--prores-profile=4444", "--pixel-format=yuva444p10le", "--image-format=png", REMOTION_COLOR],
   gif: ["--codec=gif"],
-  mp4: [],
+  mp4: [REMOTION_COLOR],
 };
 
 function muxBed(video, final) {
@@ -780,7 +792,8 @@ async function main() {
 
   if (!dryRun && !noRender) {
     const usedBrowser = engineBrowser(laneName, dir);
-    report.browser = { ...(report.browser ?? {}), render: usedBrowser ?? "chosen by the engine" };
+    const renderVersion = usedBrowser ? /\d+\.\d+\.\d+\.\d+/.exec(capture(usedBrowser, ["--version"]).stdout)?.[0] ?? null : null;
+    report.browser = { ...(report.browser ?? {}), render: usedBrowser ?? "chosen by the engine", renderVersion };
 
     if (!batchPath) {
       console.log(`\n== verify — measure the finished file\n   ${relative(process.cwd(), outPath) || outPath}\n`);
