@@ -449,13 +449,17 @@ Windows with Node 22. What these results do and do not prove is in
 
 **On all four**
 
-- `npm run verify` — the brief and contract checks pass, and **125/125** fast tests
-  pass on the Windows 11 machine. CI runs the same checks and tests as separate steps.
-- `npm run test:smoke` — **47/47**. Short real renders on both engines, measured with
-  ffprobe: MP4, WebM and MOV with a non-silent bed, a silent MP4 with `--no-audio`, GIF
-  silent or refused, and a project path with spaces, `&`, `( )` and `%`. Negative
-  fixtures fail for hidden, transparent, off-screen, clipped, covered and briefly shown
-  copy.
+- `npm run verify` — the brief and contract checks pass, and **128/128** fast tests
+  pass on Windows, **127/127** on Ubuntu and macOS, which lack one Windows-only test. CI
+  runs the same checks and tests as separate steps.
+- `npm run test:smoke` with `MOTIONBRIEF_FULL_SIZE=1` — **52/52** on Ubuntu and macOS.
+  On Windows 50 pass and 2 skip, because the long `TMPDIR` case does not apply there.
+  Short real renders on both engines, measured with ffprobe: MP4, WebM and MOV with a
+  non-silent bed, a silent MP4 with `--no-audio`, GIF silent or refused, and a project
+  path with spaces, `&`, `( )` and `%`. Negative fixtures fail for hidden, transparent,
+  off-screen, clipped, covered and briefly shown copy.
+- Both templates (1920×1080, 30 fps, 12 s) and the intro (1920×1080, 60 fps, 17 s)
+  rendered at full size in h264 + AAC, and measured against their briefs.
 - `music.mjs` — the same brief gives a byte-identical WAV, with the same hash on every
   platform.
 - Two renders of one picture matched byte for byte on each machine.
@@ -470,8 +474,7 @@ Windows with Node 22. What these results do and do not prove is in
   six files of the intro. CI also runs the linter on Ubuntu.
 - `check-contract --runtime` on the templates — **29/29** requirements verified on both
   engines. One advisory on each: "renders" is about 8 px at phone width.
-- Both templates rendered and verified — 1920×1080, 30 fps, 12 s, h264 + AAC.
-  `hyperframes check` on the HyperFrames template: **10/10 text passes WCAG AA**.
+- `hyperframes check` on the HyperFrames template: **10/10 text passes WCAG AA**.
 - **The MP4 behind this README is real** — rendered from
   `examples/motionbrief-intro/brief.json`, h264 + AAC, 17.0 s, 1920×1080, 60 fps,
   3.3 MB. The GIF is the same film at 25 fps and 880 px wide. **97/97 text passes WCAG
@@ -482,8 +485,9 @@ Windows with Node 22. What these results do and do not prove is in
 
 - That video matches between machines. The same render differs in bytes across
   platforms, and FFmpeg versions and font rasterization differ too.
-- That the full-size templates and the intro render on macOS or Linux. Only the short
-  smoke fixtures have.
+- That WebM and MOV carry the same colour tags on every platform. The smoke test asserts
+  colour on MP4 only. On Windows, Remotion WebM and MOV and HyperFrames MOV are tagged
+  BT.709. HyperFrames WebM has no colour-space tag.
 
 ---
 

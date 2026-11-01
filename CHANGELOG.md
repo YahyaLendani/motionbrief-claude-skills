@@ -11,7 +11,8 @@
 - Fixed: a system Chrome with a long `TMPDIR` stopped the runtime check on Linux and macOS.
   The engine's browser does not keep that socket, and a full Chrome now names the cause.
 - Fixed: Remotion output decoded differently from HyperFrames, and on Windows came out full
-  range (`yuvj420p`). MP4, WebM and MOV are now tagged limited-range BT.709 on both lanes.
+  range (`yuvj420p`). Remotion MP4, WebM and MOV are now tagged limited-range BT.709, as
+  HyperFrames MP4 and MOV already are. HyperFrames WebM still has no colour-space tag.
 - Reports record the rendering browser's version and the video's colour range and space.
 - `test:smoke` with `MOTIONBRIEF_FULL_SIZE=1` renders the templates and the intro at full
   size. CI does this on Ubuntu, macOS and Windows.
