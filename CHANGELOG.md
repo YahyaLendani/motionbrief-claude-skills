@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.1 — 2026-11-01
 
 - Fixed: the runtime check could look through a different browser from the one that
   renders: a system Chrome on a fresh machine, or HyperFrames' Chrome on the Remotion lane.

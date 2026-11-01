@@ -347,8 +347,8 @@ Both templates were rendered on Windows on 2026-11-01 at 1920×1080, 30 fps, 12 
 with 29/29 runtime requirements verified. The HyperFrames template lints clean (0
 errors, 0 warnings across all five files) and passes `hyperframes check`, with 10/10
 WCAG AA contrast. `assets/preview.jpg` is its actual output, one settled frame per
-beat. On macOS and Linux only short smoke fixtures have been rendered, so render once
-to confirm on your machine.
+beat. CI also renders both at full size on Ubuntu and macOS. Fonts rasterize differently
+between platforms, so review the frames on your machine.
 
 ---
 
