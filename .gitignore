@@ -23,6 +23,9 @@ node_modules/
 .build/
 .build3/
 
+# render smoke tests: projects, logs, output and engines
+.smoke/
+
 # prop files generated for batch renders
 .props/
 

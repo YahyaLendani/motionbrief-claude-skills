@@ -62,11 +62,16 @@ Every package version must match exactly. Mismatched `remotion` and
 `@remotion/*` versions are the top install failure.
 
 ```bash
-npx create-video@latest my-video
+npx create-video@4.0.539 my-video
 npx remotion studio            # live preview
 npx remotion compositions      # list composition ids
 npx remotion upgrade           # bump all packages in lockstep
 ```
+
+The template pins `4.0.539` with a lockfile, so install it with `npm ci`.
+`remotion upgrade` leaves the tested version. The runtime check relies on page hooks
+internal to Remotion, and if they change it fails closed, leaving requirements
+`unverified`. `motion-render.mjs` runs the project's own CLI directly, with no shell.
 
 ---
 
@@ -304,7 +309,8 @@ Useful extras:
 
 | Package | Purpose |
 | - | - |
-| `@remotion/google-fonts` | Typed font loaders, e.g. `loadFont("Inter")` |
+| `@fontsource/inter` | Font files in `node_modules`, so a render needs no network. The template's choice |
+| `@remotion/google-fonts` | Typed font loaders, e.g. `loadFont("Inter")`. Fetches at render time |
 | `@remotion/layout-utils` | `measureText`, `fitText` — text fitting to a box |
 | `@remotion/shapes` | SVG rect/circle/star/polygon with animation props |
 | `@remotion/paths` | SVG path math: `getLength`, `evolvePath`, `getPointAtLength` |
@@ -467,4 +473,4 @@ enough to read (roughly 12 characters per second of hold).
 | Version mismatch error | `@remotion/*` out of lockstep | `npx remotion upgrade` |
 | Wrong colours | `--image-format jpeg` | Use `png` with `--color-space bt709` |
 | Sequence frame math off | Re-subtracting `from` inside a Sequence | `useCurrentFrame` is already local |
-| Text jumps when fonts load | Font not awaited | `@remotion/google-fonts` loader + `delayRender` |
+| Text jumps when fonts load | Font not awaited | `@fontsource/*` import + `document.fonts.load` inside `delayRender` |

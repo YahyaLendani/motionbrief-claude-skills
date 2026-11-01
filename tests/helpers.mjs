@@ -34,7 +34,7 @@ export function copyTemplate(which) {
   if (which === "hyperframes") {
     for (const p of ["index.html", "compositions", "brief.json"]) cpSync(join(HF, p), join(dir, p), { recursive: true });
   } else {
-    for (const p of ["src", "package.json"]) cpSync(join(REMOTION, p), join(dir, p), { recursive: true });
+    for (const p of ["src", "package.json", "package-lock.json"]) cpSync(join(REMOTION, p), join(dir, p), { recursive: true });
   }
   return dir;
 }

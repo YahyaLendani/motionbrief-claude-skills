@@ -349,51 +349,11 @@ function printSummary() {
 /* ------------------------------------------------------------------ */
 
 function printCommands() {
-  const f = brief.format ?? {};
-  const dir = dirname(briefFile);
-  const ext = f.container ?? "mp4";
-  const isHF = brief.lane === "hyperframes";
-  const out = isHF
-    ? join(dir, "renders", `${brief.slug}.${ext}`)
-    : join(dir, "renders", `${brief.slug}.${ext}`);
-
+  // One command: it validates first and installs only the pinned engine.
+  const batch = rowsPath ? ` --batch ${rowsPath}${brief.audio?.policy === "generated" ? " --no-audio" : ""}` : "";
   console.log("");
-  console.log("  render");
-  if (isHF) {
-    console.log(`    cd ${dir}`);
-    if (brief.audio?.policy === "generated") {
-      console.log(`    node <skill>/scripts/music.mjs --brief brief.json --out audio/music.wav`);
-    }
-    console.log(`    npx hyperframes lint .`);
-    console.log(`    npx hyperframes check .`);
-    if (rowsPath) {
-      console.log(
-        `    npx hyperframes render . --batch ${rowsPath} --output renders/ --format ${ext}`,
-      );
-    } else {
-      console.log(`    npx hyperframes render . --output ${out} --format ${ext}`);
-    }
-  } else {
-    const comp = brief.composition ?? "LaunchCard";
-    const codec =
-      ext === "webm"
-        ? " --codec=vp9"
-        : ext === "mov"
-          ? " --codec=prores --pixel-format=yuva444p10le"
-          : ext === "gif"
-            ? " --codec=gif"
-            : "";
-    console.log(`    cd ${dir}`);
-    if (rowsPath) {
-      console.log(
-        `    node scripts/motion-render.mjs --dir . --batch ${rowsPath} --out-dir renders/`,
-      );
-    } else {
-      console.log(
-        `    npx remotion render src/index.tsx ${comp} ${out}${codec}`,
-      );
-    }
-  }
+  console.log("  render (stops on anything failed or unverified)");
+  console.log(`    node <skill>/scripts/motion-render.mjs --brief ${briefFile}${batch}`);
 }
 
 const rowsPath = rowsIdx !== -1 ? args[rowsIdx + 1] : null;

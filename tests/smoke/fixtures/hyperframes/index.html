@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Smoke</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #10131a;
+      }
+      #root {
+        position: relative;
+        width: 640px;
+        height: 360px;
+        overflow: hidden;
+        background: #10131a;
+        font-family: Inter, sans-serif;
+        color: #f4f5f7;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .big {
+        font-size: 64px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+      .small {
+        font-size: 28px;
+        font-weight: 500;
+        color: #8b93a3;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="smoke"
+      data-start="0"
+      data-duration="3"
+      data-width="640"
+      data-height="360"
+      data-fps="30"
+    >
+      <div id="scene-title" class="scene clip" data-brief-beat="title" data-start="0" data-duration="1.5" data-track-index="0">
+        <div id="title-text" class="big">Smoke test</div>
+      </div>
+      <div id="scene-stat" class="scene clip" data-brief-beat="stat" data-start="1.5" data-duration="1.5" data-track-index="1">
+        <div id="stat-value" class="big">0</div>
+        <div id="stat-label" class="small">frames</div>
+      </div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+      tl.fromTo("#title-text", { y: 12, filter: "blur(4px)" }, { y: 0, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 0);
+
+      var counter = { value: 0 };
+      tl.to(
+        counter,
+        {
+          value: 12480,
+          duration: 0.7,
+          ease: "power2.out",
+          onUpdate: function () {
+            document.getElementById("stat-value").textContent = Math.round(counter.value).toLocaleString("en-US");
+          },
+        },
+        1.5,
+      );
+      window.__timelines["smoke"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,6 +1,81 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 — 2026-11-01
+
+**"Passed" now means something exact.** See `references/validation.md`.
+
+- **Breaking:** `check-contract.mjs` reports each requirement as `verified`, `failed`
+  or `unverified`, and exits 3 when mandatory ones stay unverified. `--preflight` keeps
+  the old exit 0 for those, but the status still says so. `motion-render.mjs` stops on
+  them before rendering.
+- **Breaking:** beats map to scenes by explicit id, not position: `data-brief-beat` or a
+  matching id in HyperFrames, `<Sequence name>` in Remotion. Projects relying on start
+  order now report `brief_scene_count` or `brief_scene_unmapped`.
+- `--allow-unverified <id|pattern>` accepts named unverified requirements, and records
+  them. It cannot accept a failure, and blanket patterns are refused.
+- Fixed: copy kept in a comment or an unused variable satisfied the check, as did copy in
+  another scene. Now `brief_copy_missing` and `brief_copy_wrong_scene`.
+- Fixed: a computed Remotion timing (`Number("120")`) warned and passed. Now it stays
+  unverified, or is measured at runtime and reported as a mismatch. Source is never
+  executed to understand it.
+- Fixed: missing `data-fps` passed quietly. Now unverified.
+- New `--runtime`: inspects the composition in a headless browser at settled frames. Flags
+  hidden, transparent, off-screen, clipped, blurred or covered copy, and short holds, and
+  advises on overlap, phone-size text and fallback fonts. If it cannot run, requirements
+  stay unverified.
+- Copy normalization is defined and documented. It is not byte equality, and the docs no
+  longer call it verbatim. Number-only lines compare as whole numbers, so `412,480` no
+  longer satisfies `12,480`.
+
+**Rendering**
+- Fixed: Remotion ignored `audio.policy: "generated"` and produced a silent video. Both
+  lanes now synthesize the bed, mux it on, and measure that it is there and not silent.
+- Fixed: on Windows, an argument could run as a command (`--out "a&echo,x>f.txt&b.mp4"`
+  did). Nothing goes through a shell any more. Node CLIs run as `node <script>`, native
+  tools run directly, and `.cmd` and `.bat` wrappers are refused.
+- Things that cannot be delivered are refused before rendering, exit 2: GIF or `--batch`
+  with a generated bed (unless `--no-audio`), an `--out` that contradicts the format, an
+  `--fps` that contradicts the brief, unknown flags.
+- A missing ffmpeg or ffprobe, or a missing local asset, fails first with what to do.
+  External assets are named before rendering.
+- Output is measured with ffprobe against the brief, and every run writes
+  `<out>.report.json`: validation, overrides, engine, Node, browser, encoder, lockfile,
+  fonts drawn and hashes.
+- Fixed: `hyperframes check` left a detached server and browser working in the project
+  for five minutes after a render, which on Windows stopped the folder being deleted.
+- Fixed: "clipped" was measured against the font's line box, so a reveal mask that only
+  trimmed empty space failed readable text, and masked text counted as painted on the
+  first frame. Both now use the glyphs' ink. A first frame with only a graphic on it is
+  `first_frame_unverified`: this check cannot see what a graphic draws.
+- Fixed: the pinned HyperFrames could check for a newer version of itself and schedule
+  an install from a terminal. Every engine call now turns that off.
+- Fixed: a GIF was measured by the shortest delay in the file, so every 30 fps GIF failed
+  at 33.3. Its frame rate is now frames over time, within 0.5 fps rather than 1.5.
+- Fixed: `<Sequence from={window.name === "x" ? 0 : 45} name="stat">` read `name` from
+  inside the expression and lost the scene. Attributes are matched only at the tag's top
+  level.
+- Fixed: a marked scene ending on the composition's last frame was reported as a timing
+  mismatch, because a seek past the end lands on the last frame.
+
+**Reproducibility**
+- HyperFrames is pinned to `0.8.226` and installed from a committed lockfile, instead of
+  whatever an unversioned `npx` resolved. `scripts/hf.mjs` runs it. Remotion is pinned
+  exactly to `4.0.539` with a lockfile.
+- The Remotion template loads Inter from `@fontsource/inter`, so its fonts need no network
+  at render time.
+- New `scripts/doctor.mjs` reports readiness, and what would need network, without using
+  it. "HyperFrames works offline" was never true of a fresh install, and is gone.
+- CI compares the music hash between platforms, rather than only two runs on each.
+
+**Tests**
+- New `npm run test:smoke`: real short renders on both engines, measured with ffprobe,
+  with negative fixtures for each runtime failure. CI runs it on Ubuntu, macOS and Windows.
+- New fast tests for docs and code agreeing, argument passing, and every reproduced gap.
+
+**Product claims**
+- "A brief your agent can't drift from" is now "Catch timing and copy drift before
+  rendering." The docs state what is checked automatically, at runtime, in a frame review,
+  and not at all.
 
 **README**
 - The header is now a 17 s, 60 fps intro built from its own brief,

@@ -120,7 +120,7 @@ Decide and write it down:
 
 - **No assets** — pure CSS/SVG/type. Fastest, fully deterministic, no licensing
   question.
-- **Registry blocks** — `npx hyperframes add <block>`; editable source, real
+- **Registry blocks** — `node <skill>/scripts/hf.mjs add <block>`; editable source, real
   motion already tuned.
 - **Local media** — `public/` for Remotion via `staticFile()`, relative paths for
   HyperFrames. Always wrap video in `<OffthreadVideo>` (Remotion) and let
@@ -144,7 +144,7 @@ reference. If an asset isn't available, design the piece to not need it.
   `-0.04em` on display sizes — untracked large type looks amateur.
 - Optical size: 140–200 px for hero type at 1080p. Anything under 60 px is body
   copy, not a title.
-- Contrast: WCAG AA minimum (4.5:1) for anything that must read. `npx hyperframes
+- Contrast: WCAG AA minimum (4.5:1) for anything that must read. `node <skill>/scripts/hf.mjs
   check` reports contrast failures.
 
 ---

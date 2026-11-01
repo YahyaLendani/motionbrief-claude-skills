@@ -51,26 +51,34 @@ composition stays video-only — audio is muxed later.
 ## 4. Validate and render
 
 ```
-node <skill>/scripts/check-contract.mjs --dir ./my-video
+node <skill>/scripts/check-contract.mjs --dir ./my-video --preflight
 node <skill>/scripts/motion-render.mjs --brief ./my-video/brief.json
 ```
 
 `check-contract.mjs` reads `./my-video/brief.json` and fails if the build has
-drifted from it — scene timings, size, fps, or copy that is not verbatim. Fix
-the code (or change the brief on purpose), never ignore it. The render wrapper
-runs the same checks first, so it stops before rendering a drifted build.
+drifted from it: scene timings, size, fps, or copy missing from the beat's scene.
+Fix the code (or change the brief on purpose), never ignore it. `--preflight` is the
+fast static look. Its status can say `unverified`, which is not a pass.
 
-The wrapper synthesizes the music, lints, checks, renders the picture, and muxes
-the bed. Then look at the frames before you call it done:
+The render wrapper repeats those checks and adds the runtime check in a headless
+browser, which measures whether each line is readable, and for long enough. It
+stops before rendering on `failed`, and on `unverified`. If a requirement really
+cannot be measured, say so to the user, and accept that one id with
+`--allow-unverified`. Never use a blanket pattern, and never use it on a `failed`
+result. See `references/validation.md`.
+
+The wrapper synthesizes the music, lints, checks, renders the picture, muxes the
+bed, measures the file and writes `<out>.report.json`. Passing does not prove the
+video looks right. Look at the frames before you call it done:
 
 ```
-npx hyperframes snapshot . --review
+node <skill>/scripts/hf.mjs snapshot ./my-video --review
 ```
 
 ## 5. Report
 
-Three lines: what rendered, where the file is, and anything you assumed. No
-preamble, no recap of the request.
+Three lines: what rendered, where the file is, and anything you assumed, including
+any requirement left unverified. No preamble, no recap of the request.
 
 If a field genuinely needs a value only the user has — an API key, a logo file —
 build everything else whole and name that one value in a single line.

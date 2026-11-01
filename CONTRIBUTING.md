@@ -9,9 +9,11 @@ on; both halves are worth improving.
 npm run verify
 ```
 
-That runs the brief validator against the example, the offline contract
+That runs the brief validator against the example, the static contract
 checker against both templates (each compared with the same brief), and the
-tests in `tests/` (`npm test` on its own). CI runs the same plus the real
+tests in `tests/` (`npm test` on its own). `npm run test:smoke` is separate: it
+does real renders on both engines, and needs FFmpeg, Node 22+ and the network on
+first run. Anything it cannot run it reports as skipped, not as passed. CI runs the same plus the real
 HyperFrames linter.
 
 A new validator or contract rule gets a test: copy a template, break one thing,
@@ -22,7 +24,7 @@ If you touched a composition, also look at frames — stills are not enough but
 they catch the obvious breakage:
 
 ```bash
-npx hyperframes snapshot skills/motionbrief/assets/hyperframes --review
+node skills/motionbrief/scripts/hf.mjs snapshot skills/motionbrief/assets/hyperframes --review
 ```
 
 ## What is easy to contribute
@@ -42,7 +44,7 @@ npx hyperframes snapshot skills/motionbrief/assets/hyperframes --review
   template is wrong.
 - **No silent failures.** If a thing can render wrong without an error, the
   contract checker or the validator should catch it.
-- **Templates must stay runnable.** A PR that breaks `npx hyperframes lint` or
+- **Templates must stay runnable.** A PR that breaks `node skills/motionbrief/scripts/hf.mjs lint` or
   the Remotion bundle will not merge.
 - **Everything is deterministic.** No `Math.random()`, no `Date.now()`, no
   wall-clock state — not in a composition and not in the music. The same brief

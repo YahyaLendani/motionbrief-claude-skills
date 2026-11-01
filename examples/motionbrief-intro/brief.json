@@ -12,7 +12,7 @@
   },
   "brand": {
     "name": "MotionBrief",
-    "tagline": "A brief your agent can't drift from.",
+    "tagline": "Catch timing and copy drift before rendering.",
     "palette": {
       "bg": "#08090c",
       "fg": "#f4f5f7",
@@ -79,7 +79,7 @@
       "hold": 2.35,
       "copy": [
         "MotionBrief",
-        "A brief your agent can't drift from.",
+        "Catch timing and copy drift before rendering.",
         "npx skills add YahyaLendani/motionbrief-claude-skills"
       ]
     }
