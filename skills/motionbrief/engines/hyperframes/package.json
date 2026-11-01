@@ -1,0 +1,9 @@
+{
+  "name": "motionbrief-hyperframes-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The pinned HyperFrames engine. Installed once by motion-render.mjs from this lockfile.",
+  "dependencies": {
+    "hyperframes": "0.8.226"
+  }
+}

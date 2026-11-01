@@ -47,7 +47,7 @@ export const LaunchCard: React.FC<LaunchCardProps> = ({
       <Sequence
         from={BEATS.countUp}
         durationInFrames={COUNTUP_LEN}
-        name="CountUp"
+        name="stat"
       >
         <ZoomThrough durationInFrames={COUNTUP_LEN}>
           <CountUp label="renders" value={statValue} />

@@ -3,7 +3,10 @@
 HTML + CSS + a paused GSAP timeline. The renderer **seeks** the timeline to each
 frame and screenshots it. No React, no build step, no `node_modules`.
 
-Docs: <https://hyperframes.heygen.com>. CLI is `npx hyperframes` (no install).
+Docs: <https://hyperframes.heygen.com>. CLI is `node <skill>/scripts/hf.mjs`, which
+runs the pinned `hyperframes@0.8.226` and installs it once from a committed lockfile
+(that needs network). To render, use `motion-render.mjs`: it runs the validation gate
+first, and a bare `render` does not.
 
 ---
 
@@ -223,21 +226,21 @@ flicker or drift.
 ## CLI
 
 ```bash
-npx hyperframes init my-video --non-interactive          # scaffold
-npx hyperframes init my-video --resolution portrait      # 1080x1920
-npx hyperframes init my-video --video in.mp4             # from footage
-npx hyperframes add data-chart                           # install a registry block
-npx hyperframes catalog --tag text --json                # browse registry
-npx hyperframes lint                                     # static contract check
-npx hyperframes check                                    # browser: layout, motion, contrast
-npx hyperframes snapshot --at 1.5 --at 3.0 --review      # PNGs for visual review
-npx hyperframes keyframes --selector "#card" --shot m.png # onion-skin motion diagnostic
-npx hyperframes preview                                  # live preview server
-npx hyperframes render --output out.mp4                  # MP4
-npx hyperframes render --format webm --output o.webm     # transparent overlay
-npx hyperframes render --format mov  --output o.mov      # ProRes 4444 alpha
-npx hyperframes render --fps 60 --quality high -o out.mp4
-npx hyperframes compare ./a ./b --labels "A,B" --out cmp.png
+node <skill>/scripts/hf.mjs init my-video --non-interactive          # scaffold
+node <skill>/scripts/hf.mjs init my-video --resolution portrait      # 1080x1920
+node <skill>/scripts/hf.mjs init my-video --video in.mp4             # from footage
+node <skill>/scripts/hf.mjs add data-chart                           # install a registry block
+node <skill>/scripts/hf.mjs catalog --tag text --json                # browse registry
+node <skill>/scripts/hf.mjs lint                                     # static contract check
+node <skill>/scripts/hf.mjs check                                    # browser: layout, motion, contrast
+node <skill>/scripts/hf.mjs snapshot --at 1.5 --at 3.0 --review      # PNGs for visual review
+node <skill>/scripts/hf.mjs keyframes --selector "#card" --shot m.png # onion-skin motion diagnostic
+node <skill>/scripts/hf.mjs preview                                  # live preview server
+node <skill>/scripts/hf.mjs render --output out.mp4                  # MP4
+node <skill>/scripts/hf.mjs render --format webm --output o.webm     # transparent overlay
+node <skill>/scripts/hf.mjs render --format mov  --output o.mov      # ProRes 4444 alpha
+node <skill>/scripts/hf.mjs render --fps 60 --quality high -o out.mp4
+node <skill>/scripts/hf.mjs compare ./a ./b --labels "A,B" --out cmp.png
 ```
 
 Every command takes `--json` for machine-readable output. The `_meta` field
@@ -288,7 +291,7 @@ composition that never registers a timeline → raise
 
 ## Registry blocks
 
-`npx hyperframes add <block>` installs an editable source block. Naming a block
+`node <skill>/scripts/hf.mjs add <block>` installs an editable source block. Naming a block
 in the request makes the build reuse-first instead of hand-rolling.
 
 Common blocks: `data-chart`, `apple-money-count`, `code-typing`,
@@ -299,7 +302,7 @@ Common blocks: `data-chart`, `apple-money-count`, `code-typing`,
 Search by meaning:
 
 ```bash
-npx hyperframes catalog --query "count up number" --json
+node <skill>/scripts/hf.mjs catalog --query "count up number" --json
 ```
 
 ---

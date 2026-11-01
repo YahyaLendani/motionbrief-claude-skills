@@ -1,12 +1,18 @@
-import { loadFont } from "@remotion/google-fonts/Inter";
+import { cancelRender, continueRender, delayRender } from "remotion";
+import "@fontsource/inter/latin-500.css";
+import "@fontsource/inter/latin-600.css";
+import "@fontsource/inter/latin-800.css";
 
 // Load the brief's typeface. Without this the render silently falls back to
 // whatever the machine has installed, so two machines render different films.
-// The loader holds the render until the font is ready.
-const { fontFamily } = loadFont("normal", {
-  weights: ["500", "600", "800"],
-  subsets: ["latin"],
-});
+// The font files come from the pinned package, so a render needs no network, and
+// the handle holds the render until the font is ready.
+const fontFamily = "Inter";
+const fontsLoading = delayRender("Loading Inter");
+Promise.all([500, 600, 800].map((weight) => document.fonts.load(`${weight} 1em ${fontFamily}`))).then(
+  () => continueRender(fontsLoading),
+  (err) => cancelRender(err),
+);
 
 export const COLORS = {
   bg: "#08090c",

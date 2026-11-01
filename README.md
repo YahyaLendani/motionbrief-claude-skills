@@ -1,6 +1,6 @@
 # motionbrief
 
-**A brief your agent can't drift from.**
+**Catch timing and copy drift before rendering.**
 
 [![CI](https://github.com/YahyaLendani/motionbrief-claude-skills/actions/workflows/verify.yml/badge.svg)](https://github.com/YahyaLendani/motionbrief-claude-skills/actions/workflows/verify.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7dd3fc?style=flat-square)](LICENSE)
@@ -12,8 +12,10 @@ Describe the video in one sentence. Claude compiles it into a `brief.json` — e
 cut, every hold, every word — validates it in ten milliseconds, builds it, and
 renders an MP4 with music synthesized from the same beat grid.
 
-Same brief, same cuts, same words, byte-identical music. And if the build drifts
-from the brief, it fails before it renders.
+Same brief, same cuts, same words, byte-identical music. If the build's timing or
+copy drifts from the brief, it fails before it renders, and anything that could
+not be measured is named rather than assumed. It does not judge how the video
+looks: that stays a review of the frames.
 
 [![The MotionBrief intro — logo morph, one sentence, the beat grid, same brief same cuts, install lockup](docs/intro.gif)](docs/intro.mp4)
 
@@ -50,11 +52,11 @@ your sentence
  composition         ← built from a template that already renders
       │
       ▼
- validation          ← build compared with the brief, offline contract
-      │               check, then the engine's own linter
-      │
+ validation          ← build compared with the brief: statically, then in a
+      │               headless browser at the settled frames. Then the
+      │               engine's own linter
       ▼
- picture.mp4  +  music.wav  →  renders/*.mp4
+ picture.mp4  +  music.wav  →  renders/*.mp4 + a report of what was measured
 ```
 
 The brief takes about ten seconds to compile and it buys back the entire rebuild.
@@ -72,17 +74,40 @@ it holds the build to a brief that a script has already checked.
 ### 1. The build is held to the brief
 
 `check-contract.mjs` compares the project with `brief.json`. Move a scene,
-change the size, or paraphrase a line, and it fails:
+change the size, or paraphrase a line, and it fails. Hide a line, and the runtime
+check says how:
 
 ```
 ERROR [brief_timing_mismatch] beat "lockup" is 9s–12s in the brief but scene #scene-lockup is 8s–12s
 ERROR [brief_copy_missing]    beat "lines" copy "Cut on beat." does not appear in the composition
+ERROR [copy_not_visible]      beat "stat" copy "frames" is never readable: transparent at 2.5s
 ```
 
-It checks size, fps and length, every scene's start and duration (within a
-frame), and every line of copy, verbatim, in both engines. `motion-render.mjs`
-runs it before it renders, so a drifted build fails in milliseconds instead of
-after a render. No install, no browser, no network.
+Every requirement ends up `verified`, `failed` or `unverified`, and `unverified`
+is not a pass: it blocks the render until the requirement is measured, or a person
+accepts that one requirement by name. Nothing is accepted silently.
+
+| Checked | How |
+|---|---|
+| Size, fps, length | Static or runtime, then measured on the finished file |
+| Each beat maps to a scene, by explicit id | Static |
+| Each scene's start and duration, within a frame | Static, or runtime when the source computes them |
+| Each line of copy is in that beat's scene | Static, then in the rendered DOM |
+| Each line is readable, long enough, at its settled frames | Runtime |
+| First frame is not empty, when the brief says so | Runtime |
+| Container, audio stream, the bed is not silent | ffprobe on the finished file |
+| **Not checked:** palette, easing, transitions, layout, taste | Frame review. A build can pass everything and still look wrong |
+
+Comments, unused variables and other scenes do not count as the copy being there.
+Matching ignores case and whitespace and folds curly quotes, so it is not byte
+equality. `12,480` matches a count-up that settles on `12480`.
+[`references/validation.md`](skills/motionbrief/references/validation.md) has the
+exact rules, statuses, requirement ids, overrides and limits.
+
+`motion-render.mjs` runs all this before spending render time. The static part
+needs no install, no browser and no network. The runtime part needs the pinned
+engine, a Chrome and Node 22+, and if it cannot run, the requirements it would have
+measured stay `unverified`.
 
 ### 2. A brief a script can reject
 
@@ -117,18 +142,22 @@ linters, which still run after it.
 | | [HyperFrames](https://hyperframes.heygen.com) | [Remotion](https://remotion.dev) |
 |---|---|---|
 | You write | HTML + a paused GSAP timeline | React components |
-| Install | none — `npx hyperframes` (Node 22+) | `npm install` (~950 MB) |
+| Install | automatic, once: `hyperframes@0.8.226` from a committed lockfile (Node 22+) | `npm ci` (~950 MB), `remotion@4.0.539` from a committed lockfile |
 | Licence | Apache 2.0 | free to 3 people, paid above |
 | Best when | reusing HTML/CSS, or no build step | your team already writes React |
+| Static copy check | Scene markup is `verified` statically | Always settled at runtime: statics can't prove JSX renders |
+| Computed timing | Runtime reads the scene hosts | Needs `data-brief-beat` on an element inside the `<Sequence>` |
 
 Both templates in this repo are the same 12 seconds, so you can read them side by
-side. CI checks both against the same brief, so they cannot drift apart.
+side. CI checks both against the same brief. That compares timing and copy, not how
+each one looks.
 
 ### 5. Music that is the same every time
 
 `music.mjs` synthesizes a bed from the brief's own `bpm` and beat positions —
 additive synthesis, seeded noise, written as 16-bit PCM WAV. No samples, no API
-keys, no downloads. The same brief gives a byte-identical WAV; CI checks it.
+keys, no downloads. The same brief gives a byte-identical WAV. CI checks that on
+each platform, and compares the hash between platforms.
 
 A 120 BPM brief puts a downbeat every 0.5 s, so every cut lands on one. Change
 the tempo and the validator tells you which cuts no longer line up.
@@ -136,15 +165,34 @@ the tempo and the validator tells you which cuts no longer line up.
 It is a simple bed, not a produced track. If you want real music with cuts on
 its beat, other skills do that well (see below).
 
-Batch rendering is a pass-through: `--batch rows.json` uses HyperFrames' own
-batch mode, and gives Remotion one props file per row.
+`motion-render.mjs` adds the bed to mp4, webm and mov on both engines, and measures
+that the result has an audio stream that is not silent. GIF cannot carry audio, so
+a brief with audio is refused for GIF unless you pass `--no-audio`.
+
+Batch rendering is video-only: `--batch rows.json` uses HyperFrames' own batch mode,
+and gives Remotion one props file per row. A brief with a generated bed is refused
+for batch unless you pass `--no-audio`, rather than quietly dropping the music.
+
+### 6. A report on every render
+
+Each render writes `<out>.report.json`, pass or fail: the validation result, every
+override, the engine, Node, browser and encoder versions, the lockfile and brief
+hashes, the fonts actually drawn, external assets, and ffprobe's measurements of the
+file. `doctor.mjs` says what is ready on this machine and what would need the
+network, without using it.
+
+Repeatability is several separate claims, and only some are made here. See
+[Repeatability](skills/motionbrief/references/validation.md#repeatability): music is
+byte-identical, video across machines is not promised.
 
 ### When to use something else
 
 motionbrief makes short, repeatable pieces from one template. It does not:
 
-- **look at the finished render.** It checks the code, not the pixels, so text
-  overflow, overlaps and contrast are left to `npx hyperframes check` and to you.
+- **judge the finished render.** It measures the DOM and the file, not how the
+  pixels look. It flags hidden, clipped and covered copy, overlap and small text, but
+  contrast, composition and taste are left to `hf.mjs check` and to you. Text in a
+  canvas or an image cannot be read at all.
   [motion-video-kit](https://github.com/echris6/motion-video-kit) has fresh
   critics review the actual render.
 - **do voiceover, captions, footage or AI media.** See the official
@@ -214,19 +262,26 @@ brief · ember-sting · hyperframes · 8s 1920x1080 @30 · mp4
 
 ### Without Claude
 
-The scripts are dependency-free Node:
+The scripts are dependency-free Node. The engines they drive are pinned:
 
 ```bash
 node skills/motionbrief/scripts/brief.mjs brief.json --commands
-node skills/motionbrief/scripts/music.mjs --brief brief.json
+node skills/motionbrief/scripts/doctor.mjs --dir .
 node skills/motionbrief/scripts/motion-render.mjs --brief brief.json
 ```
 
 Or through the repo's own example:
 
 ```bash
-npm run verify     # validate the brief and both templates
-npm run render     # music + picture + mux → renders/motions-launch.mp4
+npm run verify     # validate the briefs and both templates, statically, and run the fast tests
+npm run render     # validate, music, picture, mux → renders/motions-launch.mp4
+npm run test:smoke # real short renders on both engines, measured with ffprobe
+```
+
+If a requirement stays `unverified` and you accept that, name it. Never all of them:
+
+```bash
+node skills/motionbrief/scripts/motion-render.mjs --brief brief.json --allow-unverified "beat.lines.copy[0].visible"
 ```
 
 ---
@@ -242,7 +297,7 @@ the type settings and the `assumptions` are left out. The full file is
   "slug": "motionbrief-intro",
   "lane": "hyperframes",
   "format": { "width": 1920, "height": 1080, "fps": 60, "duration": 17, "container": "mp4" },
-  "brand": { "name": "MotionBrief", "tagline": "A brief your agent can't drift from.", "palette": { "bg": "#08090c", "fg": "#f4f5f7", "accent": "#7dd3fc" } },
+  "brand": { "name": "MotionBrief", "tagline": "Catch timing and copy drift before rendering.", "palette": { "bg": "#08090c", "fg": "#f4f5f7", "accent": "#7dd3fc" } },
   "feel": { "energy": "medium", "ease": "snappy", "overshoot": "objects-only", "transition": "cinematic-zoom" },
   "audio": { "policy": "generated", "bpm": 120, "preset": "medium", "key": "A", "mode": "minor" },
   "beats": [
@@ -250,7 +305,7 @@ the type settings and the `assumptions` are left out. The full file is
     { "id": "sentence", "start": 4,    "duration": 3,   "kind": "kinetic", "motion": "word-stagger", "copy": ["Describe the video in one sentence."] },
     { "id": "grid",     "start": 7,    "duration": 3.5, "kind": "chart",   "motion": "grow",         "copy": ["brief.json", "Every cut, every hold, every word."] },
     { "id": "same",     "start": 10.5, "duration": 2.5, "kind": "kinetic", "motion": "scale-in",     "copy": ["Same brief,", "same cuts,", "same words,", "byte-identical music."] },
-    { "id": "lockup",   "start": 13,   "duration": 4,   "kind": "lockup",  "motion": "settle-in",    "hold": 2.35, "copy": ["MotionBrief", "A brief your agent can't drift from.", "npx skills add YahyaLendani/motionbrief-claude-skills"] }
+    { "id": "lockup",   "start": 13,   "duration": 4,   "kind": "lockup",  "motion": "settle-in",    "hold": 2.35, "copy": ["MotionBrief", "Catch timing and copy drift before rendering.", "npx skills add YahyaLendani/motionbrief-claude-skills"] }
   ]
 }
 ```
@@ -279,11 +334,21 @@ The composition changes only when `kind` or `motion` changes.
 
 | Need | For | Check |
 |---|---|---|
-| **Node 18+** | the skill's scripts (validate, check, music) | `node --version` |
-| **Node 22+** | the HyperFrames engine (`npx hyperframes`) | `node --version` |
+| **Node 18+** | the static scripts (brief, static contract check, music) | `node --version` |
+| **Node 22+** | the HyperFrames engine, and the runtime check on either engine | `node --version` |
 | **Claude Code** | the `/motion` path (optional) | `claude --version` |
-| **FFmpeg + FFprobe** | rendering, and muxing the music | `ffmpeg -version` |
-| `node_modules` | Remotion only | `npm install` |
+| **FFmpeg + FFprobe** | HyperFrames rendering, muxing the music, and measuring the output, on both engines | `ffmpeg -version` |
+| **Chrome** | the runtime check and rendering. The engine fetches its own if none is found | `doctor.mjs` |
+| `node_modules` | Remotion only | `npm ci` |
+| **Network** | first-time engine and browser installs, Google Fonts on first use, the templates' GSAP CDN | `doctor.mjs` |
+
+`doctor.mjs` reports all of this without using the network, including whether a
+render would finish offline. The details are in
+[Network and offline](skills/motionbrief/references/validation.md#network-and-offline).
+
+HyperFrames sends its own anonymous usage telemetry unless you turn it off. Set
+`HYPERFRAMES_NO_TELEMETRY=1` or `DO_NOT_TRACK=1` to stop it. MotionBrief does not
+change that setting for you.
 
 ```bash
 # macOS
@@ -299,14 +364,18 @@ winget install --id Gyan.FFmpeg -e
 ```
 
 Reopen your shell afterwards. `brief.mjs`, `music.mjs` and `check-contract.mjs`
-need no FFmpeg — only rendering does. Remotion bundles its own FFmpeg binaries.
+need no FFmpeg. Remotion bundles FFmpeg for its own encode, but the music mux and the
+output measurements use the system's.
 
 ### Platforms
 
-macOS, Linux, WSL and Windows are all first-class; CI runs the validators on all
-three and each installer on its own platform. Music and picture are generated
-identically everywhere — the only platform-specific code chooses a shell and
-prints the right FFmpeg hint.
+The scripts run on macOS, Linux, WSL and Windows, and never go through a shell:
+paths and ids reach each tool as literal arguments, whatever characters they contain.
+`.cmd` and `.bat` wrappers are refused, since they would need one. The Windows
+behaviour has been run on Windows. CI is configured to run the validators and the
+render smoke tests on all three, and each installer on its own platform. Music is
+byte-identical everywhere. Video is not promised to be: font rasterization and browser
+builds differ between systems.
 
 ---
 
@@ -321,18 +390,26 @@ skills/motionbrief/
     remotion.md         React engine: hooks, sequencing, CLI, pitfalls
     motion-craft.md     seven motion rules, easing tables, transitions
     prompting.md        longer multi-scene pieces
+    validation.md       what "passed" means: statuses, requirements, overrides, limits
   scripts/
     brief.mjs           validate · summarize · emit render commands
     music.mjs           beat-locked WAV synthesis from the brief
-    check-contract.mjs  offline pre-flight for both engines
-    motion-render.mjs   music → lint → check → render → mux, single or batch
+    check-contract.mjs  the brief and contract gate, static, plus --runtime
+    runtime-check.mjs   the headless inspection behind --runtime
+    copy-rules.mjs      how copy is normalized and matched
+    motion-render.mjs   validate → music → lint → render → mux → measure → report
+    toolchain.mjs       pinned engines and shell-free process execution
+    hf.mjs              run the pinned HyperFrames CLI
+    doctor.mjs          what is ready here, without using the network
+  engines/              pinned engine versions and the HyperFrames lockfile
   assets/
     hyperframes/        the 12 s Motions launch card (root + 4 sub-compositions)
-    remotion/           the same piece in React
+    remotion/           the same piece in React, with its lockfile
     preview.jpg         one settled frame per beat
 examples/
   motionbrief-intro/    the 17 s intro at the top of this README (root + 5 scenes)
 tests/                  npm test: each test breaks a template and checks the error
+tests/smoke/            npm run test:smoke: real renders, measured with ffprobe
 docs/                   README media (intro.mp4, intro.gif, intro.jpg)
 .claude/commands/motion.md
 .github/workflows/verify.yml
@@ -345,8 +422,12 @@ install.sh · install.ps1
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `✗ FFmpeg not found` | no system FFmpeg | install per [Requirements](#requirements), reopen the shell |
-| `mux — music bed` fails | FFmpeg missing from PATH | same — the mux is a plain `ffmpeg` call |
+| `ffmpeg is needed...` / `ffprobe is needed...` | not on PATH | install per [Requirements](#requirements), reopen the shell. Or set `MOTIONBRIEF_FFMPEG` / `MOTIONBRIEF_FFPROBE` |
+| `exit 3`, `brief_copy_dynamic` or `brief_timing_unverified` | static checks cannot settle it, and the runtime check could not run | run `doctor.mjs`. Otherwise accept that one id with `--allow-unverified` |
+| `copy_not_visible` | the line is in the DOM but never readable | the message says why: hidden, transparent, off-screen, clipped, blurred or covered |
+| `copy_hold_short` | readable, but not for long enough | hold the line for `beats[].hold`, or change the brief on purpose |
+| `... is a batch wrapper` | a `.cmd` or `.bat` on PATH instead of the executable | point `MOTIONBRIEF_FFMPEG` at the real `.exe` |
+| `Permission denied` from ffmpeg during a render | the machine stops ffmpeg writing in the temp folder | `doctor.mjs` shows `temp-writable`. Point `TMP` and `TEMP` at a folder it may use |
 | `/motion` unknown | commands load at session start | restart Claude Code |
 | `timing_gap` / `duration_mismatch` | beats don't tile the timeline | fix the brief, not the code |
 | `off_beat_grid` | a cut falls between beats | move the cut, or change `audio.bpm` |
@@ -361,29 +442,39 @@ install.sh · install.ps1
 
 ## Status
 
-Everything below was run, not assumed.
+Run on 2026-11-01, on one machine: Windows 11, Node 24.16.0, HyperFrames 0.8.226,
+Remotion 4.0.539, headless Chrome 152. What these results do and do not prove is in
+[validation.md](skills/motionbrief/references/validation.md).
 
-- `hyperframes lint` — **0 errors, 0 warnings** across all five template files,
-  and across the six files of the intro example
-- `hyperframes check` on the template — runtime, layout (0 issues over 9 samples),
-  motion and craft all clean; **10/10 text passes WCAG AA**. Its `audio_none` line
-  is expected: the composition is deliberately video-only and the bed is muxed
-  afterwards.
-- `hyperframes check` on the intro — passes with 0 errors; runtime and motion
-  clean, **97/97 text passes WCAG AA**. Its three warnings are expected: the
-  lockup's glow runs past the frame on purpose, the music is muxed afterwards, and
-  `line_unread` counts each typed letter of the install command as a word.
+**Run**
+
+- `npm run verify` — the brief and contract checks pass, and **125/125** fast tests
+  pass.
+- `npm run test:smoke` — **47/47**. Short real renders on both engines, measured with
+  ffprobe: MP4, WebM and MOV with a non-silent bed, a silent MP4 with `--no-audio`, GIF
+  silent or refused, and a project path with spaces, `&`, `( )` and `%`. Negative
+  fixtures fail for hidden, transparent, off-screen, clipped, covered and briefly shown
+  copy.
+- `hyperframes lint` — **0 errors, 0 warnings** across the five template files and the
+  six files of the intro.
+- `check-contract --runtime` on the templates — **29/29** requirements verified on both
+  engines. One advisory on each: "renders" is about 8 px at phone width.
+- Both templates rendered and verified — 1920×1080, 30 fps, 12 s, h264 + AAC.
+  `hyperframes check` on the HyperFrames template: **10/10 text passes WCAG AA**.
 - **The MP4 behind this README is real** — rendered from
   `examples/motionbrief-intro/brief.json`, h264 + AAC, 17.0 s, 1920×1080, 60 fps,
-  3.3 MB. The GIF is the same film at 25 fps and 880 px wide.
-- `music.mjs` — deterministic: the same brief produces a byte-identical WAV
-  (asserted in CI)
-- `brief.mjs` — passes both committed briefs and returns every expected error and
-  warning on deliberately broken ones
-- `install.sh` and `install.ps1` — both executed; every file installed, no cache
-  leakage
-- CI runs the validators on Ubuntu, macOS and Windows, and each installer on its
-  own platform
+  3.3 MB. The GIF is the same film at 25 fps and 880 px wide. **97/97 text passes WCAG
+  AA.** At runtime 36 requirements verified and 1 was accepted with `--allow-unverified`:
+  frame 0 shows only a graphic, so a person checked it.
+- `music.mjs` — the same brief gives a byte-identical WAV across runs on this machine.
+  Two renders of one picture on this machine also matched byte for byte.
+
+**Not run yet**
+
+- macOS and Linux. The CI jobs that cover them, including the render smoke tests and
+  the music comparison across platforms, have not run. Nothing here shows that music or
+  video match between machines.
+- `install.sh` and `install.ps1` against this version.
 
 ---
 

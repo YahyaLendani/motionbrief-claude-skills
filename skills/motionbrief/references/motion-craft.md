@@ -202,7 +202,7 @@ Look at it in motion before calling it done. Stills lie about timing.
 
 | Lane | Command |
 | - | - |
-| HyperFrames | `npx hyperframes snapshot --review` (beat/seam frames), `npx hyperframes keyframes --selector "#card" --shot m.png` (onion skin) |
+| HyperFrames | `node <skill>/scripts/hf.mjs snapshot --review` (beat/seam frames), `node <skill>/scripts/hf.mjs keyframes --selector "#card" --shot m.png` (onion skin) |
 | Remotion | `npx remotion still ... --frame=N` for key moments; watch in `npx remotion studio` |
 | Both | render the full file and watch it at 1× |
 

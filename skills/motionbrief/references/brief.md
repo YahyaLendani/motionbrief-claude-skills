@@ -218,7 +218,8 @@ Choosing a tempo is therefore choosing a grid. Two approaches:
    120 BPM (14 beats), 102.86 BPM (12 beats) and 85.71 BPM (10 beats).
 
 The synthesis is deterministic — same brief, byte-identical WAV — which is what
-makes a re-render a re-render and not a new take.
+makes a re-render a re-render and not a new take. That claim is about the music.
+What is and isn't promised for video is in `validation.md`.
 
 ---
 
@@ -261,17 +262,17 @@ render per row — twenty stat cards, ten name lower-thirds, a week of posts.
 }
 ```
 
-HyperFrames renders this natively:
+HyperFrames renders this natively, and Remotion loops it with one `--props` file per
+row. The same command does both:
 
 ```bash
-npx hyperframes render . --batch rows.json --output renders/
+node scripts/motion-render.mjs --brief brief.json --batch rows.json --out-dir renders/ --no-audio
 ```
 
-Remotion loops it, one `--props` file per row:
-
-```bash
-node scripts/motion-render.mjs --dir . --batch rows.json --out-dir renders/
-```
+Batch is video-only. A brief with a generated bed is refused for batch unless
+`--no-audio` says silence is what you want. Remotion rows are each measured with
+ffprobe. HyperFrames' batch mode names its own outputs, so they are recorded as not
+measured.
 
 Bind the row fields in the composition: HyperFrames
 `data-composition-variables` plus `getVariables()`; Remotion props through

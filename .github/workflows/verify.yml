@@ -38,23 +38,90 @@ jobs:
           node skills/motionbrief/scripts/music.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --out "${{ runner.temp }}/again.wav"
           node -e "const a=require('fs').readFileSync('skills/motionbrief/assets/hyperframes/audio/music.wav');const b=require('fs').readFileSync(process.argv[1]);if(!a.equals(b)){console.error('music is not deterministic');process.exit(1)}console.log('bit-identical')" "${{ runner.temp }}/again.wav"
 
+      - name: Record the music hash for the cross-platform comparison
+        run: node -e "const c=require('crypto'),f=require('fs');f.mkdirSync('music-hash',{recursive:true});f.writeFileSync('music-hash/${{ runner.os }}.sha256',c.createHash('sha256').update(f.readFileSync('skills/motionbrief/assets/hyperframes/audio/music.wav')).digest('hex'))"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: music-hash-${{ runner.os }}
+          path: music-hash/
+
+      # Static only: the runtime check needs Node 22, a browser and the engine, so it
+      # runs in the smoke job. --preflight reports what is left unverified.
       - name: Contract check — HyperFrames template
-        run: node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/hyperframes
+        run: node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/hyperframes --preflight
 
       - name: Contract check — Remotion template (against the same brief)
-        run: node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/remotion --brief skills/motionbrief/assets/hyperframes/brief.json
+        run: node skills/motionbrief/scripts/check-contract.mjs --dir skills/motionbrief/assets/remotion --brief skills/motionbrief/assets/hyperframes/brief.json --preflight
 
       - name: Validate the README intro brief
         run: node skills/motionbrief/scripts/brief.mjs examples/motionbrief-intro/brief.json
 
       - name: Contract check — README intro
-        run: node skills/motionbrief/scripts/check-contract.mjs --dir examples/motionbrief-intro
+        run: node skills/motionbrief/scripts/check-contract.mjs --dir examples/motionbrief-intro --preflight
 
       - name: Tests
         run: npm test
 
       - name: Render command dry run
         run: node skills/motionbrief/scripts/motion-render.mjs --brief skills/motionbrief/assets/hyperframes/brief.json --dry-run
+
+  # Two runs on one platform cannot prove a cross-platform claim. This compares them.
+  music-across-platforms:
+    name: music is identical across platforms
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: music-hash-*
+          merge-multiple: true
+          path: music-hash
+      - name: Compare
+        run: |
+          ls music-hash
+          test "$(ls music-hash | wc -l)" -eq 3
+          test "$(for f in music-hash/*; do cat "$f"; echo; done | sort -u | wc -l)" -eq 1
+
+  # Real renders on both engines, measured with ffprobe.
+  smoke:
+    name: render smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    env:
+      HYPERFRAMES_NO_UPDATE_CHECK: "1"
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      HYPERFRAMES_AGENT: "1"
+      MOTIONBRIEF_CHROME_NO_SANDBOX: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install FFmpeg (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install FFmpeg (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
+      - name: Install FFmpeg (Windows)
+        if: runner.os == 'Windows'
+        run: choco install ffmpeg -y --no-progress
+      - name: Render and measure
+        run: npm run test:smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ runner.os }}
+          path: |
+            .smoke/out/*.png
+            .smoke/out/*.json
+            .smoke/out/*.sha256
+            .smoke/logs/
 
   # The real linter, once, on Linux.
   lint:
@@ -73,8 +140,8 @@ jobs:
           HYPERFRAMES_SKIP_SKILLS: "1"
           HYPERFRAMES_AGENT: "1"
         run: |
-          npx --yes hyperframes@latest lint skills/motionbrief/assets/hyperframes
-          npx --yes hyperframes@latest lint examples/motionbrief-intro
+          node skills/motionbrief/scripts/hf.mjs lint skills/motionbrief/assets/hyperframes
+          node skills/motionbrief/scripts/hf.mjs lint examples/motionbrief-intro
 
   # Both installers, on the platforms that own them.
   install:
@@ -99,6 +166,8 @@ jobs:
           bash install.sh --target ./test-claude
           test -f test-claude/skills/motionbrief/SKILL.md
           test -f test-claude/skills/motionbrief/scripts/brief.mjs
+          test -f test-claude/skills/motionbrief/engines/versions.json
+          test -f test-claude/skills/motionbrief/engines/hyperframes/package-lock.json
           test -f test-claude/commands/motion.md
           test ! -d test-claude/skills/motionbrief/assets/hyperframes/.hyperframes
 
@@ -109,9 +178,10 @@ jobs:
           ./install.ps1 -Target ./test-claude
           if (-not (Test-Path test-claude/skills/motionbrief/SKILL.md)) { throw "skill missing" }
           if (-not (Test-Path test-claude/skills/motionbrief/scripts/brief.mjs)) { throw "script missing" }
+          if (-not (Test-Path test-claude/skills/motionbrief/engines/hyperframes/package-lock.json)) { throw "engine lockfile missing" }
           if (-not (Test-Path test-claude/commands/motion.md)) { throw "command missing" }
           if (Test-Path test-claude/skills/motionbrief/assets/hyperframes/.hyperframes) { throw "cache leaked" }
 
       - name: Installed skill still runs
         if: runner.os != 'Windows'
-        run: node test-claude/skills/motionbrief/scripts/check-contract.mjs --dir test-claude/skills/motionbrief/assets/hyperframes
+        run: node test-claude/skills/motionbrief/scripts/check-contract.mjs --dir test-claude/skills/motionbrief/assets/hyperframes --preflight

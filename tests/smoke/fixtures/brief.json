@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "slug": "smoke",
+  "lane": "hyperframes",
+  "composition": "Smoke",
+  "format": {
+    "width": 640,
+    "height": 360,
+    "fps": 30,
+    "duration": 3,
+    "container": "mp4"
+  },
+  "brand": {
+    "name": "Smoke",
+    "tagline": "Every frame measured.",
+    "palette": { "bg": "#10131a", "fg": "#f4f5f7", "dim": "#8b93a3", "accent": "#7dd3fc" },
+    "type": { "family": "Inter", "displayWeight": 800, "bodyWeight": 500 }
+  },
+  "feel": { "energy": "medium", "ease": "snappy", "overshoot": "objects-only", "transition": "hard-cut" },
+  "beats": [
+    {
+      "id": "title",
+      "start": 0,
+      "duration": 1.5,
+      "kind": "logo",
+      "motion": "settle-in",
+      "visibleAtStart": true,
+      "copy": ["Smoke test"]
+    },
+    {
+      "id": "stat",
+      "start": 1.5,
+      "duration": 1.5,
+      "kind": "stat",
+      "motion": "count",
+      "hold": 0.5,
+      "copy": ["frames", "12,480"]
+    }
+  ],
+  "assets": { "policy": "none", "files": [] },
+  "audio": { "policy": "generated", "bpm": 120, "preset": "medium", "key": "A", "mode": "minor", "gain": 0.7 },
+  "assumptions": ["A fixture for the render smoke tests, not a real video."]
+}
