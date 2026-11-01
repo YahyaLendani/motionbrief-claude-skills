@@ -31,7 +31,9 @@ const media = ffmpeg && ffprobe && !ffmpeg.batch && !ffprobe.batch;
 const nodeOk = Number(process.versions.node.split(".")[0]) >= 22;
 const SKIP = !media ? "ffmpeg and ffprobe are not available" : !nodeOk ? "needs Node 22 or newer" : false;
 
-const ENV = { ...process.env, MOTIONBRIEF_ENGINE_DIR: join(SMOKE, "engines"), TMP, TEMP: TMP, TMPDIR: TMP };
+// Windows only: Chrome keeps a Unix socket in TMPDIR elsewhere, and a path this deep is
+// over the length limit, so it exits before the runtime check can run.
+const ENV = { ...process.env, MOTIONBRIEF_ENGINE_DIR: join(SMOKE, "engines"), ...(process.platform === "win32" ? { TMP, TEMP: TMP } : {}) };
 const LONG = { timeout: 15 * 60 * 1000 };
 
 const evidence = { node: process.versions.node, platform: process.platform, arch: process.arch, pins: PINS, renders: {} };
