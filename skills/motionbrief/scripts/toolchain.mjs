@@ -198,11 +198,23 @@ function findFileNamed(root, names, depth = 5) {
   return null;
 }
 
-/** A Chrome the runtime check can drive, or null. Engine-managed builds first. */
-export function findBrowser(projectDir) {
+/** The Chrome the user named, or null. */
+export function explicitBrowser() {
   for (const key of ["MOTIONBRIEF_CHROME", "CHROME_PATH"]) {
     if (process.env[key] && existsSync(process.env[key])) return process.env[key];
   }
+  return null;
+}
+
+/**
+ * A Chrome the runtime check can drive, or null. With a lane, that engine's own build
+ * comes first, so the check looks through the browser that will render.
+ */
+export function findBrowser(projectDir, lane) {
+  const named = explicitBrowser();
+  if (named) return named;
+  const own = lane && projectDir ? engineBrowser(lane, projectDir) : null;
+  if (own) return own;
   const shell = ["chrome-headless-shell", "chrome-headless-shell.exe"];
   const managed = [
     join(homedir(), ".cache", "hyperframes", "chrome"),

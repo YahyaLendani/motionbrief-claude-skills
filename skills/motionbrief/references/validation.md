@@ -146,6 +146,11 @@ re-rendering a build you have just checked.
   closed. The route is reported `unavailable`, the requirements stay `unverified`,
   and nothing passes by accident.
 - It needs Node 22+ and a Chrome. Without either, the same thing happens.
+- It uses the browser the engine renders with. `motion-render` fetches that first, and
+  `MOTIONBRIEF_CHROME` overrides it. If it cannot be fetched another Chrome stands in, so
+  compare `browser.inspection` and `browser.render` in the report. An engine's browser runs
+  with the sandbox off, as the engine runs it. On Linux and macOS a full Chrome fails with a
+  very long `TMPDIR`: set a shorter one.
 - It reads the DOM, not pixels. Canvas, WebGL and image text cannot be read, so copy
   drawn that way stays failed or unverified. Accept it by name, and check it in the
   frames.

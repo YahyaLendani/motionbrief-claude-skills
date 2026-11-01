@@ -38,14 +38,14 @@ const LONG = { timeout: 15 * 60 * 1000 };
 
 const evidence = { node: process.versions.node, platform: process.platform, arch: process.arch, pins: PINS, renders: {} };
 
-function sh(name, command, args, cwd) {
-  const res = spawnSync(command, args, { cwd, env: ENV, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
+function sh(name, command, args, cwd, env = ENV) {
+  const res = spawnSync(command, args, { cwd, env, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
   mkdirSync(LOGS, { recursive: true });
   writeFileSync(join(LOGS, `${name}.log`), `${res.stdout ?? ""}\n--- stderr ---\n${res.stderr ?? ""}`);
   return { code: res.status, out: `${res.stdout ?? ""}${res.stderr ?? ""}`, stdout: res.stdout ?? "" };
 }
 
-const render = (name, args, cwd) => sh(name, process.execPath, [RENDER, ...args], cwd);
+const render = (name, args, cwd, env) => sh(name, process.execPath, [RENDER, ...args], cwd, env);
 const contract = (name, dir) => {
   const r = sh(name, process.execPath, [CHECK, "--dir", dir, "--runtime", "--json"], dir);
   return { ...r, json: JSON.parse(r.stdout) };
@@ -66,6 +66,8 @@ function probe(file) {
     avgFps: c / d,
     videoCodec: video.codec_name,
     pixelFormat: video.pix_fmt,
+    colorRange: video.color_range ?? null,
+    colorSpace: video.color_space ?? null,
     audioCodec: audio?.codec_name ?? null,
     audioDuration: audio ? Number(audio.duration ?? json.format.duration) : null,
     sampleRate: audio?.sample_rate ?? null,
@@ -198,6 +200,7 @@ for (const lane of ["hyperframes", "remotion"]) {
       assertMatchesBrief(p);
       assert.ok(p.formatName.includes("mp4") && p.brand !== "qt", p.formatName);
       assert.equal(p.videoCodec, "h264");
+      assert.deepEqual([p.pixelFormat, p.colorRange, p.colorSpace], ["yuv420p", "tv", "bt709"], "both lanes should tag colour the same way");
       assert.equal(p.audioCodec, "aac");
       assert.ok(Math.abs(p.audioDuration - 3) <= 0.1, `audio duration ${p.audioDuration}`);
       const peak = peakDb(out);
@@ -210,7 +213,8 @@ for (const lane of ["hyperframes", "remotion"]) {
       assert.equal(report.engine.version, PINS[lane]);
       assert.equal(report.environment.node, process.versions.node);
       assert.ok(report.browser.inspection?.version, "must name the inspecting browser");
-      assert.ok(report.browser.render, "must name the rendering browser");
+      assert.equal(report.browser.inspection.path, report.browser.render, "the gate should look through the browser that renders");
+      assert.match(report.browser.renderVersion, /^\d+\.\d+\.\d+\.\d+$/);
       assert.ok(report.encoder.ffmpeg.version, "must name the encoder");
       assert.ok(report.lockfile.sha256, "must identify the lockfile");
       assert.match(report.audio.bed.sha256, /^[0-9a-f]{64}$/);
@@ -219,7 +223,7 @@ for (const lane of ["hyperframes", "remotion"]) {
       assert.deepEqual(report.notVerified, []);
       assert.ok(report.fonts.length > 0, "must record the fonts that really drew the copy");
 
-      evidence.renders[`${lane}-audio`] = { ...p, peakDb: peak, encoderTag: report.outputs[0].container.encoder, ffmpeg: report.encoder.ffmpeg.version, browser: report.browser.inspection.version, fonts: [...new Set(report.fonts.flatMap((f) => (f.used ?? []).map((u) => u.family)))] };
+      evidence.renders[`${lane}-audio`] = { ...p, peakDb: peak, encoderTag: report.outputs[0].container.encoder, ffmpeg: report.encoder.ffmpeg.version, browser: report.browser.renderVersion, fonts: [...new Set(report.fonts.flatMap((f) => (f.used ?? []).map((u) => u.family)))] };
     });
 
     test("the frames have no black gap, and a contact sheet exists for review", LONG, () => {
@@ -298,8 +302,81 @@ for (const lane of ["hyperframes", "remotion"]) {
       removeTree(parent);
       assert.ok(!existsSync(parent));
     });
+
+    test("a temp path too long for a Chrome socket does not stop the render", { ...LONG, skip: process.platform === "win32" ? "Windows has no such socket here" : false }, () => {
+      const deep = join(TMP, "d".repeat(120));
+      mkdirSync(deep, { recursive: true });
+      const out = join(OUT, `${lane}-deep-tmp.mp4`);
+      const r = render(`${lane}-deep-tmp`, ["--brief", join(dir, "brief.json"), "--out", out], dir, { ...ENV, TMPDIR: deep });
+      assert.equal(r.code, 0, r.out.slice(-1500));
+      assertMatchesBrief(probe(out));
+    });
   });
 }
+
+/* --- the shipped projects at full size -------------------------------- */
+
+const FULL_SIZE = process.env.MOTIONBRIEF_FULL_SIZE === "1" ? false : "set MOTIONBRIEF_FULL_SIZE=1 to run these, a few minutes each";
+
+describe("full size: the shipped templates and the intro", { skip: SKIP || FULL_SIZE, concurrency: 1 }, () => {
+  const fresh = (name) => {
+    const dir = join(SMOKE, "projects", name);
+    removeTree(dir);
+    return dir;
+  };
+  const projects = {
+    "template-hyperframes": () => {
+      const dir = fresh("full-hyperframes");
+      cpSync(join(SKILL, "assets", "hyperframes"), dir, { recursive: true });
+      return dir;
+    },
+    "template-remotion": () => {
+      const dir = fresh("full-remotion");
+      mkdirSync(dir, { recursive: true });
+      cpSync(join(SKILL, "assets", "remotion", "src"), join(dir, "src"), { recursive: true });
+      for (const f of ["package.json", "package-lock.json"]) cpSync(join(SKILL, "assets", "remotion", f), join(dir, f));
+      symlinkSync(join(REMOTION_BASE, "node_modules"), join(dir, "node_modules"), "junction");
+      const brief = JSON.parse(readFileSync(join(SKILL, "assets", "hyperframes", "brief.json"), "utf8"));
+      writeFileSync(join(dir, "brief.json"), JSON.stringify({ ...brief, lane: "remotion" }, null, 2));
+      return dir;
+    },
+    intro: () => {
+      const dir = fresh("full-intro");
+      cpSync(join(ROOT, "examples", "motionbrief-intro"), dir, { recursive: true });
+      return dir;
+    },
+  };
+  const expected = {
+    "template-hyperframes": { fps: 30, duration: 12, args: [] },
+    "template-remotion": { fps: 30, duration: 12, args: [] },
+    // Frame 0 shows only a graphic, which the runtime check leaves for a person.
+    intro: { fps: 60, duration: 17, args: ["--allow-unverified", "beat.logo.first-frame"] },
+  };
+
+  before(() => installRemotion(), LONG);
+
+  for (const [name, want] of Object.entries(expected)) {
+    test(`${name} renders and measures as its brief says`, LONG, () => {
+      const dir = projects[name]();
+      const out = join(OUT, `full-${name}.mp4`);
+      const r = render(`full-${name}`, ["--brief", join(dir, "brief.json"), "--out", out, ...want.args], dir);
+      assert.equal(r.code, 0, r.out.slice(-1500));
+
+      const p = probe(out);
+      assert.deepEqual([p.width, p.height], [1920, 1080]);
+      assert.ok(Math.abs(p.fps - want.fps) < 0.01, `fps ${p.fps}`);
+      assert.ok(Math.abs(p.duration - want.duration) <= 0.1, `duration ${p.duration}`);
+      assert.deepEqual([p.videoCodec, p.audioCodec], ["h264", "aac"]);
+      assert.deepEqual([p.pixelFormat, p.colorRange, p.colorSpace], ["yuv420p", "tv", "bt709"]);
+
+      const report = JSON.parse(readFileSync(`${out}.report.json`, "utf8"));
+      assert.equal(report.status, "rendered");
+      const frames = Math.round(want.fps * want.duration);
+      contactSheet(out, `full-${name}`, [0, 1, 2, 3, 4, 5].map((i) => Math.round((i * (frames - 1)) / 5)));
+      evidence.fullSize = { ...evidence.fullSize, [name]: { ...p, browser: report.browser.renderVersion, unverified: report.notVerified, advisories: report.validation.findings?.filter((f) => f.level !== "error").length ?? null } };
+    });
+  }
+});
 
 /* --- runtime: what the static check cannot see ------------------------ */
 

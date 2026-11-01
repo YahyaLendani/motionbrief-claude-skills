@@ -442,9 +442,9 @@ install.sh · install.ps1
 
 ## Status
 
-Run on 2026-11-01 with HyperFrames 0.8.226 and Remotion 4.0.539: on Windows 11 with
-Node 24.16.0 and headless Chrome 152, and in CI on Ubuntu, macOS and Windows with Node
-22 and Chrome 156. What these results do and do not prove is in
+Run on 2026-11-01 with HyperFrames 0.8.226 (which renders in Chrome 152) and Remotion
+4.0.539 (Chrome 157): on Windows 11 with Node 24.16.0, and in CI on Ubuntu, macOS and
+Windows with Node 22. What these results do and do not prove is in
 [validation.md](skills/motionbrief/references/validation.md).
 
 **On all four**
@@ -481,7 +481,7 @@ Node 24.16.0 and headless Chrome 152, and in CI on Ubuntu, macOS and Windows wit
 **Not shown**
 
 - That video matches between machines. The same render differs in bytes across
-  platforms, and the browser and FFmpeg versions differ too.
+  platforms, and FFmpeg versions and font rasterization differ too.
 - That the full-size templates and the intro render on macOS or Linux. Only the short
   smoke fixtures have.
 

@@ -24,7 +24,7 @@ import { spawn } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
-import { extname, join, resolve, sep } from "node:path";
+import { basename, extname, join, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { matchFragments } from "./copy-rules.mjs";
 import {
@@ -252,6 +252,17 @@ class Cdp {
   }
 }
 
+/** Why the browser stopped. A full Chrome keeps a socket in TMPDIR, and its path has a length limit. */
+export function browserExitMessage(code, stderr) {
+  const hint = /Socket path too long/.test(stderr) ? `TMPDIR is too long for this Chrome's socket: set a shorter TMPDIR, or let the engine fetch its own browser. ` : "";
+  return `${hint}the browser exited with code ${code}: ${stderr.slice(0, 300)}`;
+}
+
+/** Both engines run their own build with the sandbox off, and Remotion's can crash at launch with it on. */
+export function sandboxOff(path) {
+  return basename(path).startsWith("chrome-headless-shell") || process.env.MOTIONBRIEF_CHROME_NO_SANDBOX === "1" || process.getuid?.() === 0;
+}
+
 function launchBrowser(path) {
   const profile = mkdtempSync(join(tmpdir(), "motionbrief-browser-"));
   const flags = [
@@ -264,7 +275,7 @@ function launchBrowser(path) {
     "--mute-audio",
     "--disable-dev-shm-usage",
     "--force-device-scale-factor=1",
-    ...(process.env.MOTIONBRIEF_CHROME_NO_SANDBOX === "1" || process.getuid?.() === 0 ? ["--no-sandbox"] : []),
+    ...(sandboxOff(path) ? ["--no-sandbox"] : []),
     "about:blank",
   ];
   const child = spawn(path, flags, { stdio: ["ignore", "ignore", "pipe"], shell: false });
@@ -295,7 +306,7 @@ function launchBrowser(path) {
     });
     child.on("close", (code) => {
       clearTimeout(timer);
-      rej(new Error(`the browser exited with code ${code}: ${err.slice(0, 300)}`));
+      rej(new Error(browserExitMessage(code, err)));
     });
   });
   return { endpoint, cleanup };
@@ -648,7 +659,7 @@ export async function inspectRuntime({ dir, lane, brief, composition }) {
   if (typeof WebSocket === "undefined") {
     return { status: "unavailable", reason: `Node ${process.versions.node} has no built-in WebSocket; the runtime check needs Node 22+` };
   }
-  const browserPath = findBrowser(dir);
+  const browserPath = findBrowser(dir, lane);
   if (!browserPath) {
     return { status: "unavailable", reason: "no Chrome found: set MOTIONBRIEF_CHROME, or run doctor.mjs" };
   }

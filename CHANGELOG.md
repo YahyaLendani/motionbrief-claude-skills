@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: the runtime check could look through a different browser from the one that
+  renders: a system Chrome on a fresh machine, or HyperFrames' Chrome on the Remotion lane.
+  The render now fetches the engine's browser first, and the check uses it. Another Chrome
+  is only the fallback when that cannot be fetched, and the render says so.
+- The runtime check runs an engine's browser with the sandbox off, as both engines do when
+  they render. Remotion's Chrome 157 crashed at launch with it on. A full Chrome keeps it.
+- Fixed: a system Chrome with a long `TMPDIR` stopped the runtime check on Linux and macOS.
+  The engine's browser does not keep that socket, and a full Chrome now names the cause.
+- Fixed: Remotion output decoded differently from HyperFrames, and on Windows came out full
+  range (`yuvj420p`). MP4, WebM and MOV are now tagged limited-range BT.709 on both lanes.
+- Reports record the rendering browser's version and the video's colour range and space.
+- `test:smoke` with `MOTIONBRIEF_FULL_SIZE=1` renders the templates and the intro at full
+  size. CI does this on Ubuntu, macOS and Windows.
+- Corrected the 0.5.0 README: it named Chrome 156 as the CI browser. That was the runtime
+  check's fallback. Renders used Chrome 152 on HyperFrames and Chrome 157 on Remotion.
+
 ## 0.5.0 — 2026-11-01
 
 **"Passed" now means something exact.** See `references/validation.md`.

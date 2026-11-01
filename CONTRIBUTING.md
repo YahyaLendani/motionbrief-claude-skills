@@ -13,7 +13,8 @@ That runs the brief validator against the example, the static contract
 checker against both templates (each compared with the same brief), and the
 tests in `tests/` (`npm test` on its own). `npm run test:smoke` is separate: it
 does real renders on both engines, and needs FFmpeg, Node 22+ and the network on
-first run. Anything it cannot run it reports as skipped, not as passed. CI runs the same plus the real
+first run. Set `MOTIONBRIEF_FULL_SIZE=1` to add the templates and the intro at full size.
+Anything it cannot run it reports as skipped, not as passed. CI runs the same plus the real
 HyperFrames linter.
 
 A new validator or contract rule gets a test: copy a template, break one thing,
