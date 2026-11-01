@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 — 2026-11-01
 
 **"Passed" now means something exact.** See `references/validation.md`.
 
@@ -69,7 +69,7 @@
 
 **Tests**
 - New `npm run test:smoke`: real short renders on both engines, measured with ffprobe,
-  with negative fixtures for each runtime failure.
+  with negative fixtures for each runtime failure. CI runs it on Ubuntu, macOS and Windows.
 - New fast tests for docs and code agreeing, argument passing, and every reproduced gap.
 
 **Product claims**

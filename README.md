@@ -442,21 +442,32 @@ install.sh · install.ps1
 
 ## Status
 
-Run on 2026-11-01, on one machine: Windows 11, Node 24.16.0, HyperFrames 0.8.226,
-Remotion 4.0.539, headless Chrome 152. What these results do and do not prove is in
+Run on 2026-11-01 with HyperFrames 0.8.226 and Remotion 4.0.539: on Windows 11 with
+Node 24.16.0 and headless Chrome 152, and in CI on Ubuntu, macOS and Windows with Node
+22 and Chrome 156. What these results do and do not prove is in
 [validation.md](skills/motionbrief/references/validation.md).
 
-**Run**
+**On all four**
 
 - `npm run verify` — the brief and contract checks pass, and **125/125** fast tests
-  pass.
+  pass on the Windows 11 machine. CI runs the same checks and tests as separate steps.
 - `npm run test:smoke` — **47/47**. Short real renders on both engines, measured with
   ffprobe: MP4, WebM and MOV with a non-silent bed, a silent MP4 with `--no-audio`, GIF
   silent or refused, and a project path with spaces, `&`, `( )` and `%`. Negative
   fixtures fail for hidden, transparent, off-screen, clipped, covered and briefly shown
   copy.
+- `music.mjs` — the same brief gives a byte-identical WAV, with the same hash on every
+  platform.
+- Two renders of one picture matched byte for byte on each machine.
+
+**In CI on all three**
+
+- `install.sh` or `install.ps1`, each on its own platform.
+
+**On the Windows 11 machine only**
+
 - `hyperframes lint` — **0 errors, 0 warnings** across the five template files and the
-  six files of the intro.
+  six files of the intro. CI also runs the linter on Ubuntu.
 - `check-contract --runtime` on the templates — **29/29** requirements verified on both
   engines. One advisory on each: "renders" is about 8 px at phone width.
 - Both templates rendered and verified — 1920×1080, 30 fps, 12 s, h264 + AAC.
@@ -466,15 +477,13 @@ Remotion 4.0.539, headless Chrome 152. What these results do and do not prove is
   3.3 MB. The GIF is the same film at 25 fps and 880 px wide. **97/97 text passes WCAG
   AA.** At runtime 36 requirements verified and 1 was accepted with `--allow-unverified`:
   frame 0 shows only a graphic, so a person checked it.
-- `music.mjs` — the same brief gives a byte-identical WAV across runs on this machine.
-  Two renders of one picture on this machine also matched byte for byte.
 
-**Not run yet**
+**Not shown**
 
-- macOS and Linux. The CI jobs that cover them, including the render smoke tests and
-  the music comparison across platforms, have not run. Nothing here shows that music or
-  video match between machines.
-- `install.sh` and `install.ps1` against this version.
+- That video matches between machines. The same render differs in bytes across
+  platforms, and the browser and FFmpeg versions differ too.
+- That the full-size templates and the intro render on macOS or Linux. Only the short
+  smoke fixtures have.
 
 ---
 
